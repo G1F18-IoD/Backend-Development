@@ -14,7 +14,13 @@ namespace Server_backend
     {
         public static void Main(string[] args)
         {
+            DatabaseConnection dbCon = new DatabaseConnection();
+            //dbCon.startConnection();
+            CURL cURL = new CURL();
+            cURL.testCurl();
+            //cURL.PostResult();
             BuildWebHost(args).Run();
+            // RPi static ip: 192.168.1.155
         }
 
         public static IWebHost BuildWebHost(string[] args) =>
