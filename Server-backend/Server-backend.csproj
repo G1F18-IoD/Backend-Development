@@ -5,6 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Folder Include="Authentication\" />
+    <Folder Include="RPi_Connections\" />
+    <Folder Include="Statistics\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
