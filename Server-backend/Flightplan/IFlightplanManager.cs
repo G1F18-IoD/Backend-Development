@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 
 namespace Server_backend.Flightplan
 {
-    interface IFlightplan
+    interface IFlightplanManager
     {
         List<Command> GetPossibleCommands();
         List<Command> GetCommands(int flightplanId);
-        void AddCommand(Command cmd);
+
     }
 }
