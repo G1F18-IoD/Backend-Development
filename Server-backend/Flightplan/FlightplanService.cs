@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Server_backend.Flightplan
 {
-    public class FlightplanManager : IFlightplanManager
+    public class FlightplanService : IFlightplanService
     {
         public List<Command> GetCommands(int flightplanId)
         {
@@ -16,5 +16,15 @@ namespace Server_backend.Flightplan
         {
             throw new NotImplementedException();
         }
+		
+		public Flightplan GetFlightplan(int flightplanId)
+		{
+			throw new NotImplementedException();
+		}
+		
+		public void SaveFlightplan(Flightplan flightplan)
+		{
+			throw new NotImplementedException();
+		}
     }
 }
