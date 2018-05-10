@@ -32,11 +32,22 @@ namespace Server_backend.Controllers
         {
             return this.auth.Register(loginModel.Username, loginModel.Password);
         }
+
+        [HttpPost("validate")]
+        public string ValidatePost([FromBody]ValidateTokenModel tokenModel)
+        {
+            return this.auth.ValidateToken(tokenModel.token).ToString();
+        }
     }
 
     public class LoginModel
     {
         public string Username { set; get; }
         public string Password { set; get; }
+    }
+
+    public class ValidateTokenModel
+    {
+        public string token { set; get; }
     }
 }

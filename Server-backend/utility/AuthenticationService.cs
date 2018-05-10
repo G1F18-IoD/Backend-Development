@@ -13,6 +13,7 @@ namespace Server_backend.utility
     public class AuthenticationService : IAuthenticationService
     {
         private readonly IAuthenticationDatabaseService authDBService;
+        
 
         public AuthenticationService(IAuthenticationDatabaseService _authDBService)
         {
@@ -31,7 +32,36 @@ namespace Server_backend.utility
 
         public bool ValidateToken(string token)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var jwtToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
+
+                if (jwtToken == null)
+                    return false;
+
+                var symmetricKey = Convert.FromBase64String(Secret);
+
+                var validationParameters = new TokenValidationParameters()
+                {
+                    RequireExpirationTime = true,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    IssuerSigningKey = new SymmetricSecurityKey(symmetricKey)
+                };
+
+                SecurityToken securityToken;
+                var principal = tokenHandler.ValidateToken(token, validationParameters, out securityToken);
+                
+                //I have no idea what principal is.....
+
+                return true;
+            }
+
+            catch (Exception)
+            {
+                return false;
+            }
         }
 		
 		public string Register(string username, string password)

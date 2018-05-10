@@ -4,23 +4,27 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Server_backend.Flightplan;
+using Server_backend.utility;
 
 namespace Server_backend.Controllers
 {
     [Route("api/[controller]")]
     public class FlightplanController : Controller
     {
-		private IFlightplanService flightplanService;
+		private readonly IFlightplanService flightplanService;
+        private readonly IAuthenticationService auth;
 		
-		FlightplanController(IFlightplanService _flightplanService)
+		FlightplanController(IFlightplanService _flightplanService, IAuthenticationService _auth)
 		{
 			this.flightplanService = _flightplanService;
+            this.auth = _auth;
 		}
 		
         // GET api/values
         [HttpGet]
         public IEnumerable<string> Get()
         {
+            this.auth.ValidateToken(".");
             return new string[] { "value1", "value2" };
         }
 
