@@ -8,6 +8,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Server_backend.utility;
+using Server_backend.Database;
 
 namespace Server_backend
 {
@@ -23,6 +25,9 @@ namespace Server_backend
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddTransient<IAuthenticationService, AuthenticationService>();
+            services.AddTransient<IAuthenticationDatabaseService, DatabaseService>();
+            services.AddTransient<INpgSqlConnection, DatabaseConnection>();
             services.AddMvc();
         }
 

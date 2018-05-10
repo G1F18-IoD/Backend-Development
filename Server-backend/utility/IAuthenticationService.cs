@@ -8,8 +8,8 @@ namespace Server_backend.utility
 {
     public interface IAuthenticationService
     {
-        void Login(string username, string password);
+        string Login(string username, string password);
 		bool ValidateToken(string token);
-		void Register(string username, string password);
+		string Register(string username, string password);
     }
 }

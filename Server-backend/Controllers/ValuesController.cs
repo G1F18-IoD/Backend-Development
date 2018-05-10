@@ -25,8 +25,9 @@ namespace Server_backend.Controllers
 
         // POST api/values
         [HttpPost]
-        public void Post([FromBody]string value)
+        public string Post([FromBody]string value)
         {
+            return "agger er nub";
         }
 
         // PUT api/values/5
