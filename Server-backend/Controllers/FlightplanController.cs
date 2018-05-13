@@ -14,7 +14,7 @@ namespace Server_backend.Controllers
 		private readonly IFlightplanService flightplanService;
         private readonly IAuthenticationService auth;
 		
-		FlightplanController(IFlightplanService _flightplanService, IAuthenticationService _auth)
+		public FlightplanController(IFlightplanService _flightplanService, IAuthenticationService _auth)
 		{
 			this.flightplanService = _flightplanService;
             this.auth = _auth;
@@ -51,6 +51,25 @@ namespace Server_backend.Controllers
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
+        }
+    }
+
+    [Route("api/[controller]")]
+    public class CommandController : Controller
+    {
+        private readonly ICommandService commandService;
+        private readonly IAuthenticationService auth;
+
+        public CommandController(ICommandService _commandService, IAuthenticationService _auth)
+        {
+            this.commandService = _commandService;
+            this.auth = _auth;
+        }
+
+        [HttpGet("{id}")]
+        public string Get(int id)
+        {
+            return this.commandService.GetCommand(id).CmdString;
         }
     }
 }

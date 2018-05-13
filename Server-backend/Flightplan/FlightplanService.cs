@@ -5,6 +5,25 @@ using System.Threading.Tasks;
 
 namespace Server_backend.Flightplan
 {
+    public class Flightplan
+    {
+        Dictionary<int, Command> commands = new Dictionary<int, Command>();
+
+        Flightplan()
+        {
+
+        }
+    }
+
+    public interface IFlightplanService
+    {
+        List<Command> GetPossibleCommands();
+        List<Command> GetCommands(int flightplanId);
+
+        Flightplan GetFlightplan(int flightplanId);
+        void SaveFlightplan(Flightplan flightplan);
+    }
+
     public class FlightplanService : IFlightplanService
     {
         public List<Command> GetCommands(int flightplanId)

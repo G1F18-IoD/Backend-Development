@@ -6,6 +6,11 @@ using Npgsql;
 
 namespace Server_backend.Database
 {
+    public interface INpgSqlConnection
+    {
+        NpgsqlConnection GetCon();
+    }
+
     public class DatabaseConnection : INpgSqlConnection
     {
         private static NpgsqlConnection npgSqlCon;

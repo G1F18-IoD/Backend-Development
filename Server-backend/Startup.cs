@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Server_backend.utility;
 using Server_backend.Database;
+using Server_backend.Flightplan;
 
 namespace Server_backend
 {
@@ -26,7 +27,9 @@ namespace Server_backend
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddTransient<IAuthenticationService, AuthenticationService>();
+            services.AddTransient<ICommandService, CommandService>();
             services.AddTransient<IAuthenticationDatabaseService, DatabaseService>();
+            services.AddTransient<ICommandDatabaseService, DatabaseService>();
             services.AddTransient<INpgSqlConnection, DatabaseConnection>();
             services.AddMvc();
         }
