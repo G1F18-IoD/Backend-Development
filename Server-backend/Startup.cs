@@ -37,7 +37,11 @@ namespace Server_backend
             services.AddTransient<ICommandDatabaseService, DatabaseService>();
             services.AddTransient<IFlightplanDatabaseService, DatabaseService>();
             services.AddTransient<INpgSqlConnection, DatabaseConnection>();
-            services.AddMvc();
+            services.AddScoped<SaveAuthenticationHeader>();
+            services.AddMvc(options =>
+            {
+                
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -55,6 +59,7 @@ namespace Server_backend
     );
 
             app.UseMvc();
+            
         }
     }
 }

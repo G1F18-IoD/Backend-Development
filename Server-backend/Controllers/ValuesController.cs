@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using System.Web.Http.Cors;
+using Server_backend.utility;
 
 namespace Server_backend.Controllers
 {
@@ -13,6 +14,8 @@ namespace Server_backend.Controllers
     {
         // GET api/values
         [HttpGet]
+        
+        //[ServiceFilter(typeof(SampleAsyncActionFilter))]
         public IEnumerable<string> Get()
         {
             return new string[] { "value1", "value2" };

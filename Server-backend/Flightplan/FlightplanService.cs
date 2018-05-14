@@ -1,4 +1,5 @@
 ﻿using Server_backend.Database;
+using Server_backend.utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,18 +24,20 @@ namespace Server_backend.FlightplanNS
     {
         List<Flightplan> GetFlightplans();
         Flightplan GetFlightplan(int flightplanId);
-        void SaveFlightplan(Flightplan flightplan);
+        Flightplan CreateFlightplan();
     }
 
     public class FlightplanService : IFlightplanService
     {
         private readonly ICommandService cmdService;
         private readonly IFlightplanDatabaseService fpDbService;
+        private readonly IAuthenticationService auth;
 
-        public FlightplanService(ICommandService _cmdService, IFlightplanDatabaseService _fpDbService)
+        public FlightplanService(ICommandService _cmdService, IFlightplanDatabaseService _fpDbService, IAuthenticationService _auth)
         {
             this.cmdService = _cmdService;
             this.fpDbService = _fpDbService;
+            this.auth = _auth;
         }
 
         public List<Flightplan> GetFlightplans()
@@ -51,10 +54,16 @@ namespace Server_backend.FlightplanNS
 		{
             return this.fpDbService.GetFlightplanInfo(flightplanId);
 		}
-		
-		public void SaveFlightplan(Flightplan flightplan)
-		{
-			throw new NotImplementedException();
-		}
+
+        public Flightplan CreateFlightplan()
+        {
+            string user_id = this.auth.GetTokenClaim("user_id");
+            int uid = 0;
+            if(!Int32.TryParse(user_id, out uid))
+            {
+                throw new FormatException("Could not get user_id from token!");
+            }
+            return this.fpDbService.CreateFlightplan(uid);
+        }
     }
 }

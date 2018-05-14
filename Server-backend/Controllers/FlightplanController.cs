@@ -11,12 +11,14 @@ namespace Server_backend.Controllers
     [Route("api/[controller]")]
     public class FlightplanController : Controller
     {
-		private readonly IFlightplanService flightplanService;
+        private readonly IFlightplanService flightplanService;
+        private readonly ICommandService commandService;
         private readonly IAuthenticationService auth;
 		
-		public FlightplanController(IFlightplanService _flightplanService, IAuthenticationService _auth)
-		{
-			this.flightplanService = _flightplanService;
+		public FlightplanController(IFlightplanService _flightplanService, IAuthenticationService _auth, ICommandService _commandService)
+        {
+            this.flightplanService = _flightplanService;
+            this.commandService = _commandService;
             this.auth = _auth;
 		}
 		
@@ -36,21 +38,30 @@ namespace Server_backend.Controllers
 
         // POST api/values
         [HttpPost]
-        public void Post([FromBody]string value)
+        [ServiceFilter(typeof(SaveAuthenticationHeader))]
+        public Flightplan Post()
         {
+            return this.flightplanService.CreateFlightplan();
+        }
+        
+        [HttpPost("cmd/{id}")]
+        public Command Put(int id, [FromBody]CommandModel cmd)
+        {
+            Command command = new Command();
+            command.CmdString = cmd.cmd;
+            command.Message = cmd.message;
+            command.Params.AddRange(cmd.parameters);
+            command.Order = cmd.order;
+            command.FlightplanId = id;
+            return this.commandService.SaveCommand(command);
         }
 
-        // PUT api/values/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody]string value)
-        {
-        }
-
+        /*
         // DELETE api/values/5
-        [HttpDelete("{id}")]
+        [HttpPost("delete/{id}")]
         public void Delete(int id)
         {
-        }
+        }*/
     }
 
     [Route("api/[controller]")]
@@ -71,4 +82,20 @@ namespace Server_backend.Controllers
             return this.commandService.GetCommand(id);
         }
     }
+
+    public class FlightplanModel
+    {
+
+    }
+
+    public class CommandModel
+    {
+        public string cmd { get; set; }
+        public string message { get; set; }
+        public List<string> parameters { get; set; }
+        public int order { get; set; }
+    }
 }
+
+// https://stackoverflow.com/questions/46744561/how-to-do-simple-header-authorization-in-net-core-2-0
+// https://andrewlock.net/adding-default-security-headers-in-asp-net-core/

@@ -11,5 +11,7 @@ namespace Server_backend.utility
         string Login(string username, string password);
 		bool ValidateToken(string token);
 		string Register(string username, string password);
+        void SetToken(string token);
+        string GetTokenClaim(string attribute);
     }
 }

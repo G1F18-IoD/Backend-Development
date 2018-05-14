@@ -13,7 +13,7 @@ namespace Server_backend.utility
     public class AuthenticationService : IAuthenticationService
     {
         private readonly IAuthenticationDatabaseService authDBService;
-        
+        private static JwtSecurityToken jwtToken;
 
         public AuthenticationService(IAuthenticationDatabaseService _authDBService)
         {
@@ -52,7 +52,7 @@ namespace Server_backend.utility
 
                 SecurityToken securityToken;
                 var principal = tokenHandler.ValidateToken(token, validationParameters, out securityToken);
-                
+                string id = jwtToken.Payload.Claims.First(claim => claim.Type == ClaimTypes.PrimarySid).Value;
                 //I have no idea what principal is.....
 
                 return true;
@@ -74,6 +74,36 @@ namespace Server_backend.utility
             return this.Login(username, password);
         }
 
+        public void SetToken(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            AuthenticationService.jwtToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
+            Console.WriteLine(token);
+        }
+
+        public string GetTokenClaim(string attribute)
+        {
+            /*Dictionary<string, string> tokenKeyValues = new Dictionary<string, string>();
+            List<Claim> claims = AuthenticationService.jwtToken.Payload.Claims.ToList();
+            claims.ForEach(claim =>
+            {
+                tokenKeyValues.Add(claim.Type, claim.Value);
+            });*/
+            string retVal;
+            switch(attribute.ToLower())
+            {
+                case "user_id":
+                case "userid":
+                    retVal = AuthenticationService.jwtToken.Payload.Claims.First(claim => claim.Type == "primarysid").Value;
+                    //retVal = tokenKeyValues.GetValueOrDefault("primarysid");
+                    break;
+                default:
+                    retVal = "";
+                    break;
+            }
+            return retVal;
+        }
+
         private const string Secret = "db3OIsj+BXE9NZDy0t8W3TcNekrF+2d/1sFnWG4HnV8TZY30iTOdtVWJG8abWvB1GlOgJuQZdcF2Luqm/hccMw==";
         //private const string Secret = "fiskenfiskerfisk";
 
@@ -88,7 +118,8 @@ namespace Server_backend.utility
                 Subject = new ClaimsIdentity(new[]
                         {
                         new Claim(ClaimTypes.Name, username),
-                        new Claim(ClaimTypes.PrimarySid, id.ToString())
+                        new Claim(ClaimTypes.PrimarySid, id.ToString()),
+                        //new Claim(ClaimTypes.Actor, )
                     }),
 
                 Expires = now.AddMinutes(Convert.ToInt32(expireMinutes)),

@@ -21,6 +21,7 @@ namespace Server_backend.Database
     {
         Flightplan GetFlightplanInfo(int flightplanId);
         List<Flightplan> GetFlightplans();
+        Flightplan CreateFlightplan(int authorId);
     }
 
 

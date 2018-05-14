@@ -9,7 +9,7 @@ namespace Server_backend.FlightplanNS
     public class Command
     {
         public int RowId { get; set; }
-        public int FlightPlanId { get; set; }
+        public int FlightplanId { get; set; }
         public int CmdId { get; set; }
         public string CmdString { get; set; }
         public string Message { get; set; }
@@ -32,7 +32,7 @@ namespace Server_backend.FlightplanNS
     {
         Dictionary<int, Command> GetCommands(int flightplanId);
         Command GetCommand(int CommandId);
-        void SaveCommand(Command command);
+        Command SaveCommand(Command command);
     }
 
     public interface ICommandService : ICommandCommon
@@ -64,9 +64,9 @@ namespace Server_backend.FlightplanNS
             throw new NotImplementedException();
         }
 
-        public void SaveCommand(Command command)
+        public Command SaveCommand(Command command)
         {
-            throw new NotImplementedException();
+            return this.commandDBService.SaveCommand(command);
         }
     }
 }
