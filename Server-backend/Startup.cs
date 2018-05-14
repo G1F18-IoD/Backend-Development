@@ -10,7 +10,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Server_backend.utility;
 using Server_backend.Database;
-using Server_backend.Flightplan;
+using Server_backend.FlightplanNS;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Cors.Internal;
 
 namespace Server_backend
 {
@@ -26,10 +28,14 @@ namespace Server_backend
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors();
+
             services.AddTransient<IAuthenticationService, AuthenticationService>();
             services.AddTransient<ICommandService, CommandService>();
+            services.AddTransient<IFlightplanService, FlightplanService>();
             services.AddTransient<IAuthenticationDatabaseService, DatabaseService>();
             services.AddTransient<ICommandDatabaseService, DatabaseService>();
+            services.AddTransient<IFlightplanDatabaseService, DatabaseService>();
             services.AddTransient<INpgSqlConnection, DatabaseConnection>();
             services.AddMvc();
         }
@@ -41,6 +47,12 @@ namespace Server_backend
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseCors(builder =>
+    builder.WithOrigins("http://localhost:4200")
+           .AllowAnyHeader()
+           .AllowAnyMethod()
+    );
 
             app.UseMvc();
         }

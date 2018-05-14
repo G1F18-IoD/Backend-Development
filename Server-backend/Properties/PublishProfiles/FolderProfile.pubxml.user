@@ -6,6 +6,6 @@ by editing this MSBuild file. In order to learn more about this please visit htt
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <TimeStampOfAssociatedLegacyPublishXmlFile />
-    <_PublishTargetUrl>C:\Users\chris\Documents\G1F18-IoD\Backend-development\Server-backend\Server-backend\bin\Release\PublishOutput</_PublishTargetUrl>
+    <_PublishTargetUrl>C:\Users\DanielToft\Desktop\Universitet\4. Semester\G1IoD\Backend\Server-backend\bin\Release\PublishOutput</_PublishTargetUrl>
   </PropertyGroup>
 </Project>

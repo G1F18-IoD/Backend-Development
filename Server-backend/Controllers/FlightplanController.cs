@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Server_backend.Flightplan;
+using Server_backend.FlightplanNS;
 using Server_backend.utility;
 
 namespace Server_backend.Controllers
@@ -22,17 +22,16 @@ namespace Server_backend.Controllers
 		
         // GET api/values
         [HttpGet]
-        public IEnumerable<string> Get()
+        public List<Flightplan> Get()
         {
-            this.auth.ValidateToken(".");
-            return new string[] { "value1", "value2" };
+            return this.flightplanService.GetFlightplans();
         }
 
         // GET api/values/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public Flightplan Get(int id)
         {
-            return "value";
+            return this.flightplanService.GetFlightplan(id);
         }
 
         // POST api/values
@@ -67,9 +66,9 @@ namespace Server_backend.Controllers
         }
 
         [HttpGet("{id}")]
-        public string Get(int id)
+        public Command Get(int id)
         {
-            return this.commandService.GetCommand(id).CmdString;
+            return this.commandService.GetCommand(id);
         }
     }
 }

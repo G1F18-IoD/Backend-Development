@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using Npgsql;
-using Server_backend.Flightplan;
+using Server_backend.FlightplanNS;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Server_backend.Database
 {
-    public class DatabaseService : IAuthenticationDatabaseService, ICommandDatabaseService
+    public class DatabaseService : IAuthenticationDatabaseService, ICommandDatabaseService, IFlightplanDatabaseService
     {
         private readonly NpgsqlConnection npgSqlCon;
 
@@ -63,7 +63,7 @@ namespace Server_backend.Database
             {
                 cmd.Connection = this.npgSqlCon;
                 //cmd.CommandText = "SELECT id FROM account";
-                cmd.CommandText = "SELECT id, flight_plan_id, cmd, message, payload, \"order\" FROM public.flight_plan_commands WHERE id=(@cmdId)";
+                cmd.CommandText = "SELECT id, flightplan_id, cmd, message, payload, \"order\" FROM public.flightplan_commands WHERE id=(@cmdId)";
                 System.Console.WriteLine("CommandId:" + CommandId);
                 cmd.Parameters.AddWithValue("@cmdId", CommandId);
                 using (var reader = cmd.ExecuteReader())
@@ -80,7 +80,7 @@ namespace Server_backend.Database
                     JArray ja = JArray.Parse(reader.GetString(4));
                     string[] Params = ja.Select(jv => (string)jv).ToArray();
                     int count = 0;
-                    foreach(string Param in Params)
+                    foreach (string Param in Params)
                     {
                         retObj.Params.Insert(count++, Param);
                     }
@@ -89,14 +89,92 @@ namespace Server_backend.Database
             return retObj;
         }
 
-        public List<Command> GetCommands(int flightplanId)
+        public Dictionary<int, Command> GetCommands(int flightplanId)
         {
-            throw new NotImplementedException();
+            Dictionary<int, Command> cmds = new Dictionary<int, Command>();
+            using (var cmd = new NpgsqlCommand())
+            {
+                cmd.Connection = this.npgSqlCon;
+                //cmd.CommandText = "SELECT id FROM account";
+                cmd.CommandText = "SELECT id, flightplan_id, cmd, message, payload, \"order\" FROM public.flightplan_commands WHERE flightplan_id=(@fpid)";
+                cmd.Parameters.AddWithValue("@fpid", flightplanId);
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        Command command = new Command();
+                        command.RowId = reader.GetInt32(0);
+                        command.FlightPlanId = reader.GetInt32(1);
+                        command.CmdString = reader.GetString(2);
+                        command.Message = reader.IsDBNull(3) ? "" : reader.GetString(3);
+                        command.Order = reader.GetInt32(5);
+
+                        //JavaScriptSerializer js = new JavaScriptSerializer();
+                        //string[] Params = js.Deserialize<string[]>(reader.GetString(4));
+                        JArray ja = JArray.Parse(reader.GetString(4));
+                        string[] Params = ja.Select(jv => (string)jv).ToArray();
+                        int count = 0;
+                        foreach (string Param in Params)
+                        {
+                            command.Params.Insert(count++, Param);
+                        }
+                        cmds.Add(command.Order, command);
+                    }
+                }
+                //id = (int)cmd.ExecuteScalar();
+            }
+            return cmds;
         }
 
         public void SaveCommand(Command command)
         {
             throw new NotImplementedException();
+        }
+
+        public Flightplan GetFlightplanInfo(int flightplanId)
+        {
+            Flightplan flightplan = new Flightplan();
+            using (var cmd = new NpgsqlCommand())
+            {
+                cmd.Connection = this.npgSqlCon;
+                //cmd.CommandText = "SELECT id FROM account";
+                cmd.CommandText = "SELECT id, author, created_at FROM public.flightplan WHERE id=(@fpid)";
+                cmd.Parameters.AddWithValue("@fpid", flightplanId);
+                using (var reader = cmd.ExecuteReader())
+                {
+                    reader.Read();
+
+                    flightplan.rowId = reader.GetInt32(0);
+                    flightplan.authorId = reader.GetInt32(1);
+                    flightplan.createdAt = reader.GetInt32(2);
+                }
+                //id = (int)cmd.ExecuteScalar();
+            }
+            return flightplan;
+        }
+
+        public List<Flightplan> GetFlightplans()
+        {
+            List<Flightplan> flightplans = new List<Flightplan>();
+            using (var cmd = new NpgsqlCommand())
+            {
+                cmd.Connection = this.npgSqlCon;
+                //cmd.CommandText = "SELECT id FROM account";
+                cmd.CommandText = "SELECT id, author, created_at FROM public.flightplan";
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        Flightplan flightplan = new Flightplan();
+                        flightplan.rowId = reader.GetInt32(0);
+                        flightplan.authorId = reader.GetInt32(1);
+                        flightplan.createdAt = reader.GetInt32(2);
+                        flightplans.Add(flightplan);
+                    }
+                }
+                //id = (int)cmd.ExecuteScalar();
+            }
+            return flightplans;
         }
     }
 }

@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using System.Web.Http.Cors;
 
 namespace Server_backend.Controllers
 {
     [Route("api/[controller]")]
+    //[EnableCors(origins: "*", headers: "*", methods: "*")]
     public class ValuesController : Controller
     {
         // GET api/values

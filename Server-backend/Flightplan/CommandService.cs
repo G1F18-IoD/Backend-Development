@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Server_backend.Database;
 
-namespace Server_backend.Flightplan
+namespace Server_backend.FlightplanNS
 {
     public class Command
     {
@@ -30,7 +30,7 @@ namespace Server_backend.Flightplan
 
     public interface ICommandCommon
     {
-        List<Command> GetCommands(int flightplanId);
+        Dictionary<int, Command> GetCommands(int flightplanId);
         Command GetCommand(int CommandId);
         void SaveCommand(Command command);
     }
@@ -54,9 +54,9 @@ namespace Server_backend.Flightplan
             return this.commandDBService.GetCommand(CommandId);
         }
 
-        public List<Command> GetCommands(int flightplanId)
+        public Dictionary<int, Command> GetCommands(int flightplanId)
         {
-            throw new NotImplementedException();
+            return this.commandDBService.GetCommands(flightplanId);
         }
 
         public List<Command> GetPossibleCommands()

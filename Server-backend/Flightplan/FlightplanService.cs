@@ -1,44 +1,55 @@
-﻿using System;
+﻿using Server_backend.Database;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Server_backend.Flightplan
+namespace Server_backend.FlightplanNS
 {
     public class Flightplan
     {
-        Dictionary<int, Command> commands = new Dictionary<int, Command>();
+        public Dictionary<int, Command> commands { get; set; }
+        public int authorId { get; set; }
+        public int createdAt { get; set; }
+        public int rowId { get; set; }
 
-        Flightplan()
+        public Flightplan()
         {
-
+            this.commands = new Dictionary<int, Command>();
         }
     }
 
     public interface IFlightplanService
     {
-        List<Command> GetPossibleCommands();
-        List<Command> GetCommands(int flightplanId);
-
+        List<Flightplan> GetFlightplans();
         Flightplan GetFlightplan(int flightplanId);
         void SaveFlightplan(Flightplan flightplan);
     }
 
     public class FlightplanService : IFlightplanService
     {
-        public List<Command> GetCommands(int flightplanId)
+        private readonly ICommandService cmdService;
+        private readonly IFlightplanDatabaseService fpDbService;
+
+        public FlightplanService(ICommandService _cmdService, IFlightplanDatabaseService _fpDbService)
         {
-            throw new NotImplementedException();
+            this.cmdService = _cmdService;
+            this.fpDbService = _fpDbService;
         }
 
-        public List<Command> GetPossibleCommands()
+        public List<Flightplan> GetFlightplans()
         {
-            throw new NotImplementedException();
+            List<Flightplan> flightplans = this.fpDbService.GetFlightplans();
+            foreach(Flightplan flightplan in flightplans)
+            {
+                flightplan.commands = this.cmdService.GetCommands(flightplan.rowId);
+            }
+            return flightplans;
         }
-		
+
 		public Flightplan GetFlightplan(int flightplanId)
 		{
-			throw new NotImplementedException();
+            return this.fpDbService.GetFlightplanInfo(flightplanId);
 		}
 		
 		public void SaveFlightplan(Flightplan flightplan)
