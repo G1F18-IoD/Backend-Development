@@ -95,7 +95,7 @@ namespace Server_backend.Database
             {
                 cmd.Connection = this.npgSqlCon;
                 //cmd.CommandText = "SELECT id FROM account";
-                cmd.CommandText = "SELECT id, flightplan_id, cmd, message, payload, \"order\" FROM public.flightplan_commands WHERE flightplan_id=(@fpid)";
+                cmd.CommandText = "SELECT id, flightplan_id, cmd, message, payload, \"order\" FROM public.flightplan_commands WHERE flightplan_id=(@fpid) ORDER BY \"order\" ASC, id ASC";
                 cmd.Parameters.AddWithValue("@fpid", flightplanId);
                 using (var reader = cmd.ExecuteReader())
                 {
@@ -117,7 +117,7 @@ namespace Server_backend.Database
                         {
                             command.Params.Insert(count++, Param);
                         }
-                        cmds.Add(command.Order, command);
+                        cmds.Add(cmds.Count, command);
                     }
                 }
                 //id = (int)cmd.ExecuteScalar();
@@ -143,7 +143,7 @@ namespace Server_backend.Database
                 {
                     cmd.Parameters.AddWithValue("@message", command.Message);
                 }
-                
+
                 cmd.Parameters.AddWithValue("@params", command.Params);
                 cmd.Parameters.AddWithValue("@order", command.Order);
                 using (var reader = cmd.ExecuteReader())
