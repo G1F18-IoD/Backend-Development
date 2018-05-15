@@ -6,9 +6,14 @@ using System.Net;
 using System.IO;
 using System.Net.Http;
 
-namespace Server_backend
+namespace Server_backend.utility
 {
-    public class CURL
+    public interface ISendHttpService
+    {
+
+    }
+
+    public class SendHttpService : ISendHttpService
     {
         public void testCurl()
         {

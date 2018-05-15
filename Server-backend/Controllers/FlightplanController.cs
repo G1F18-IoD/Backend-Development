@@ -21,12 +21,18 @@ namespace Server_backend.Controllers
             this.commandService = _commandService;
             this.auth = _auth;
 		}
-		
+
         // GET api/values
         [HttpGet]
         public List<Flightplan> Get()
         {
             return this.flightplanService.GetFlightplans();
+        }
+
+        [HttpGet("settings")]
+        public SettingsModel GetSettings()
+        {
+            return new SettingsModel();
         }
 
         // GET api/values/5
@@ -39,13 +45,13 @@ namespace Server_backend.Controllers
         // POST api/values
         [HttpPost]
         [ServiceFilter(typeof(SaveAuthenticationHeader))]
-        public Flightplan Post()
+        public Flightplan Post([FromBody]FlightplanModel fpModel)
         {
-            return this.flightplanService.CreateFlightplan();
+            return this.flightplanService.CreateFlightplan(fpModel.name);
         }
         
         [HttpPost("cmd/{id}")]
-        public Command Put(int id, [FromBody]CommandModel cmd)
+        public Command PostCmd(int id, [FromBody]CommandModel cmd)
         {
             Command command = new Command();
             command.CmdString = cmd.cmd;
@@ -85,7 +91,7 @@ namespace Server_backend.Controllers
 
     public class FlightplanModel
     {
-
+        public string name { get; set; }
     }
 
     public class CommandModel
@@ -94,6 +100,11 @@ namespace Server_backend.Controllers
         public string message { get; set; }
         public List<string> parameters { get; set; }
         public int order { get; set; }
+    }
+
+    public class SettingsModel
+    {
+        public int CommandPerFlightplanCount = 25;
     }
 }
 

@@ -13,6 +13,7 @@ namespace Server_backend.FlightplanNS
         public int authorId { get; set; }
         public int createdAt { get; set; }
         public int rowId { get; set; }
+        public string name { get; set; }
 
         public Flightplan()
         {
@@ -24,7 +25,7 @@ namespace Server_backend.FlightplanNS
     {
         List<Flightplan> GetFlightplans();
         Flightplan GetFlightplan(int flightplanId);
-        Flightplan CreateFlightplan();
+        Flightplan CreateFlightplan(string name);
     }
 
     public class FlightplanService : IFlightplanService
@@ -55,7 +56,7 @@ namespace Server_backend.FlightplanNS
             return this.fpDbService.GetFlightplanInfo(flightplanId);
 		}
 
-        public Flightplan CreateFlightplan()
+        public Flightplan CreateFlightplan(string name)
         {
             string user_id = this.auth.GetTokenClaim("user_id");
             int uid = 0;
@@ -63,7 +64,7 @@ namespace Server_backend.FlightplanNS
             {
                 throw new FormatException("Could not get user_id from token!");
             }
-            return this.fpDbService.CreateFlightplan(uid);
+            return this.fpDbService.CreateFlightplan(uid, name);
         }
     }
 }

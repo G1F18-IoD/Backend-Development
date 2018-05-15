@@ -16,7 +16,7 @@ namespace Server_backend
         public static void Main(string[] args)
         {
             //dbCon.startConnection();
-            CURL cURL = new CURL();
+            //CURL cURL = new CURL();
             //cURL.testCurl();
             //cURL.PostResult();
             //IAuthenticationService auth = new AuthenticationService();

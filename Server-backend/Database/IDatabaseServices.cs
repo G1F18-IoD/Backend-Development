@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Server_backend.FlightplanNS;
+using Server_backend.RPiConnectionNS;
 
 namespace Server_backend.Database
 {
@@ -21,7 +22,12 @@ namespace Server_backend.Database
     {
         Flightplan GetFlightplanInfo(int flightplanId);
         List<Flightplan> GetFlightplans();
-        Flightplan CreateFlightplan(int authorId);
+        Flightplan CreateFlightplan(int authorId, string name);
+    }
+
+    public interface IRPiConnectionDatabaseService : IRPiConnectionCommon
+    {
+
     }
 
 

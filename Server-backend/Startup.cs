@@ -13,6 +13,7 @@ using Server_backend.Database;
 using Server_backend.FlightplanNS;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Cors.Internal;
+using Server_backend.RPiConnectionNS;
 
 // p-23&G!bn?-sCK
 
@@ -32,14 +33,22 @@ namespace Server_backend
         {
             services.AddCors();
 
+            // DI Services
             services.AddTransient<IAuthenticationService, AuthenticationService>();
             services.AddTransient<ICommandService, CommandService>();
             services.AddTransient<IFlightplanService, FlightplanService>();
+            services.AddTransient<IRPiConnectionService, RPiConnectionService>();
             services.AddTransient<IAuthenticationDatabaseService, DatabaseService>();
             services.AddTransient<ICommandDatabaseService, DatabaseService>();
             services.AddTransient<IFlightplanDatabaseService, DatabaseService>();
+            services.AddTransient<IRPiConnectionDatabaseService, DatabaseService>();
             services.AddTransient<INpgSqlConnection, DatabaseConnection>();
+            services.AddTransient<ISendHttpService, SendHttpService>();
+
+            //Filters
             services.AddScoped<SaveAuthenticationHeader>();
+
+
             services.AddMvc(options =>
             {
                 
