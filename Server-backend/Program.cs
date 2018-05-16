@@ -19,6 +19,7 @@ namespace Server_backend
             //CURL cURL = new CURL();
             //cURL.testCurl();
             SendHttpService test = new SendHttpService();
+            
             //test.PostResult();
             //test.testCurl();
             //IAuthenticationService auth = new AuthenticationService();

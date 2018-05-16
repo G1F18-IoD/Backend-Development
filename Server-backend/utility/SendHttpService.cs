@@ -6,6 +6,7 @@ using System.Net;
 using System.IO;
 using System.Net.Http;
 using System.Web.Http.Results;
+using Newtonsoft.Json;
 
 namespace Server_backend.utility
 {
@@ -26,8 +27,8 @@ namespace Server_backend.utility
             using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
             {
                 //string jsonStr = new JsonResult<T>(classToJson).toString();
-
-                //streamWriter.Write(jsonStr);
+                string jsonStr = JsonConvert.SerializeObject(classToJson);
+                streamWriter.Write(jsonStr);
                 streamWriter.Flush();
                 streamWriter.Close();
             }
