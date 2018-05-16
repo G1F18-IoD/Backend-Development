@@ -18,7 +18,9 @@ namespace Server_backend
             //dbCon.startConnection();
             //CURL cURL = new CURL();
             //cURL.testCurl();
-            //cURL.PostResult();
+            SendHttpService test = new SendHttpService();
+            //test.PostResult();
+            //test.testCurl();
             //IAuthenticationService auth = new AuthenticationService();
             //auth.Login("cunt", "cunt");
             BuildWebHost(args).Run();

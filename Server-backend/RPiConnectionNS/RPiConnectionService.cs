@@ -1,5 +1,6 @@
 ﻿using Server_backend.Database;
 using Server_backend.utility;
+using Server_backend.FlightplanNS;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +18,7 @@ namespace Server_backend.RPiConnectionNS
 
     public interface IRPiConnectionService : IRPiConnectionCommon
     {
-
+        bool HandFlightplanToRPiConnection(int receiverRPiConnectionId, int flightplanId);
     }
 
     public class RPiConnection
@@ -38,11 +39,13 @@ namespace Server_backend.RPiConnectionNS
     {
         private readonly IAuthenticationService auth;
         private readonly IRPiConnectionDatabaseService rpiConDbService;
+        private readonly IFlightplanService fpService;
 
-        public RPiConnectionService(IAuthenticationService _auth, IRPiConnectionDatabaseService _rpiConDbService)
+        public RPiConnectionService(IAuthenticationService _auth, IRPiConnectionDatabaseService _rpiConDbService, IFlightplanService _fpService)
         {
             this.auth = _auth;
             this.rpiConDbService = _rpiConDbService;
+            this.fpService = _fpService;
         }
         public RPiConnection GetRPiConnection(int rpiConnectionId)
         {
@@ -62,6 +65,13 @@ namespace Server_backend.RPiConnectionNS
         public RPiConnection SetRPiConnectionStatus(int rpiConnectionId, string status)
         {
             return this.rpiConDbService.SetRPiConnectionStatus(rpiConnectionId, status);
+        }
+
+        public bool HandFlightplanToRPiConnection(int receiverRPiConnectionId, int flightplanId)
+        {
+            Flightplan fpToSend = this.fpService.GetFlightplan(flightplanId);
+            RPiConnection receiverRPiConnection = this.GetRPiConnection(receiverRPiConnectionId);
+            return true;
         }
     }
 }
