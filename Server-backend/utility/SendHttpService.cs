@@ -12,15 +12,16 @@ namespace Server_backend.utility
 {
     public interface ISendHttpService
     {
-        bool SendPost<T>(ref T classToJson);
+        bool SendPost<T>(string url, ref T classToJson);
 
     }
 
     public class SendHttpService : ISendHttpService
     {
-        public bool SendPost<T>(ref T classToJson)
+        public bool SendPost<T>(string url, ref T classToJson)
         {
-            var httpWebRequest = (HttpWebRequest)WebRequest.Create("http://skjoldtoft.dk/daniel/g1e17/config_switch.php");
+            url = "http://skjoldtoft.dk/daniel/g1e17/config_switch.php";
+            var httpWebRequest = (HttpWebRequest)WebRequest.Create(url);
             httpWebRequest.ContentType = "application/json";
             httpWebRequest.Method = "POST";
 
@@ -42,7 +43,7 @@ namespace Server_backend.utility
             return true;
         }
 
-        public void testCurl()
+        /*public void testCurl()
         {
             var httpWebRequest = (HttpWebRequest)WebRequest.Create("http://skjoldtoft.dk/daniel/g1e17/config_switch.php");
             httpWebRequest.ContentType = "application/json";
@@ -67,7 +68,7 @@ namespace Server_backend.utility
             }
         }
 
-        /*public async Task<HttpResponseMessage> PostResult()
+        public async Task<HttpResponseMessage> PostResult()
         {
             using (var client = new HttpClient())
             {

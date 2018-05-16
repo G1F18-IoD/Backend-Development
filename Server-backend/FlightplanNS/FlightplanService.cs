@@ -53,7 +53,9 @@ namespace Server_backend.FlightplanNS
 
 		public Flightplan GetFlightplan(int flightplanId)
 		{
-            return this.fpDbService.GetFlightplanInfo(flightplanId);
+            Flightplan flightplan = this.fpDbService.GetFlightplanInfo(flightplanId);
+            flightplan.commands = this.cmdService.GetCommands(flightplan.rowId);
+            return flightplan;
 		}
 
         public Flightplan CreateFlightplan(string name)

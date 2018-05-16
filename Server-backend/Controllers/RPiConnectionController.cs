@@ -43,8 +43,8 @@ namespace Server_backend.Controllers
         {
 
             SendHttpService test = new SendHttpService();
-            test.SendPost(ref oRPiConModel);
-            return this.rpiConService.OfferRPiConnection(oRPiConModel.ip, oRPiConModel.port);
+            test.SendPost("", ref oRPiConModel);
+            return this.rpiConService.OfferRPiConnection(oRPiConModel.ip, oRPiConModel.port, oRPiConModel.password);
         }
 
         [HttpPost("status/{id}")]
@@ -70,12 +70,21 @@ namespace Server_backend.Controllers
             }
 
         }
+
+        [HttpPost("execute_flightplan/{id}")]
+        [ServiceFilter(typeof(SaveAuthenticationHeader))]
+        public bool[] PostExecute(int id, [FromBody]ExecuteFlightplanModel eFPModel)
+        {
+            return new bool[] { this.rpiConService.HandFlightplanToRPiConnection(id, eFPModel.flightplanId, eFPModel.priority) };
+
+        }
     }
 
     public class OfferRPiConnectionModel
     {
         public string ip { get; set; }
         public int port { get; set; }
+        public string password { get; set; }
     }
 
     public class StatusRPiConnectionModel
@@ -86,5 +95,11 @@ namespace Server_backend.Controllers
     public class AllowedStatusRPiConnectionModel
     {
         public string[] allowedStatuses = new string[] { "disconnected", "connected" };
+    }
+
+    public class ExecuteFlightplanModel
+    {
+        public int flightplanId { get; set; }
+        public int priority { get; set; }
     }
 }

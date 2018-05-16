@@ -11,20 +11,40 @@ namespace Server_backend.FlightplanNS
         public int RowId { get; set; }
         public int FlightplanId { get; set; }
         public int CmdId { get; set; }
-        public string CmdString { get; set; }
+        private string cmdString;
+        public string CmdString
+        {
+            get { return this.cmdString; }
+            set
+            {
+                this.cmdString = value;
+                CmdId = this.GetCmdIdOfString();
+            }
+        }
         public string Message { get; set; }
         public int Order { get; set; }
-        public List<string> Params { get; }
+        public List<int> Params { get; }
         private int ParamsLength = 7;
 
         public Command()
         {
-            this.Params = new List<string>(this.ParamsLength);
+            this.Params = new List<int>(this.ParamsLength);
         }
 
         public string GetJson()
         {
             throw new NotImplementedException();
+        }
+
+        private int GetCmdIdOfString()
+        {
+            switch(this.cmdString)
+            {
+                case "arm":
+                    return 400;
+                default:
+                    return -1;
+            }
         }
     }
 

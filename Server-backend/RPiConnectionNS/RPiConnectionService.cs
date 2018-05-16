@@ -13,12 +13,12 @@ namespace Server_backend.RPiConnectionNS
         List<RPiConnection> GetRPiConnections();
         RPiConnection GetRPiConnection(int rpiConnectionId);
         RPiConnection SetRPiConnectionStatus(int rpiConnectionId, string status);
-        RPiConnection OfferRPiConnection(string ip, int port);
+        RPiConnection OfferRPiConnection(string ip, int port, string password);
     }
 
     public interface IRPiConnectionService : IRPiConnectionCommon
     {
-        bool HandFlightplanToRPiConnection(int receiverRPiConnectionId, int flightplanId);
+        bool HandFlightplanToRPiConnection(int receiverRPiConnectionId, int flightplanId, int priority);
     }
 
     public class RPiConnection
@@ -28,6 +28,7 @@ namespace Server_backend.RPiConnectionNS
         public string ip { get; set; }
         public int port { get; set; }
         public string status { get; set; }
+        public string password { get; set; }
 
         public RPiConnection()
         {
@@ -40,12 +41,14 @@ namespace Server_backend.RPiConnectionNS
         private readonly IAuthenticationService auth;
         private readonly IRPiConnectionDatabaseService rpiConDbService;
         private readonly IFlightplanService fpService;
+        private readonly ISendHttpService sendHttpService;
 
-        public RPiConnectionService(IAuthenticationService _auth, IRPiConnectionDatabaseService _rpiConDbService, IFlightplanService _fpService)
+        public RPiConnectionService(IAuthenticationService _auth, IRPiConnectionDatabaseService _rpiConDbService, IFlightplanService _fpService, ISendHttpService _sendHttpService)
         {
             this.auth = _auth;
             this.rpiConDbService = _rpiConDbService;
             this.fpService = _fpService;
+            this.sendHttpService = _sendHttpService;
         }
         public RPiConnection GetRPiConnection(int rpiConnectionId)
         {
@@ -57,9 +60,9 @@ namespace Server_backend.RPiConnectionNS
             return this.rpiConDbService.GetRPiConnections();
         }
 
-        public RPiConnection OfferRPiConnection(string ip, int port)
+        public RPiConnection OfferRPiConnection(string ip, int port, string password)
         {
-            return this.rpiConDbService.OfferRPiConnection(ip, port);
+            return this.rpiConDbService.OfferRPiConnection(ip, port, password);
         }
 
         public RPiConnection SetRPiConnectionStatus(int rpiConnectionId, string status)
@@ -67,11 +70,42 @@ namespace Server_backend.RPiConnectionNS
             return this.rpiConDbService.SetRPiConnectionStatus(rpiConnectionId, status);
         }
 
-        public bool HandFlightplanToRPiConnection(int receiverRPiConnectionId, int flightplanId)
+        public bool HandFlightplanToRPiConnection(int receiverRPiConnectionId, int flightplanId, int priority)
         {
             Flightplan fpToSend = this.fpService.GetFlightplan(flightplanId);
             RPiConnection receiverRPiConnection = this.GetRPiConnection(receiverRPiConnectionId);
+
+            FlightplanModelForJava flightplanModelForJava = new FlightplanModelForJava();
+            flightplanModelForJava.auth_token = receiverRPiConnection.password;
+            flightplanModelForJava.author_id = fpToSend.authorId;
+            flightplanModelForJava.created_at = fpToSend.createdAt;
+            flightplanModelForJava.priority = priority;
+            flightplanModelForJava.commands = new List<CommandModelForJava>();
+            foreach (KeyValuePair<int, Command> entry in fpToSend.commands)
+            {
+                CommandModelForJava commandModelForJava = new CommandModelForJava();
+                commandModelForJava.cmd_id = entry.Value.CmdId;
+                commandModelForJava.parameters = entry.Value.Params;
+                flightplanModelForJava.commands.Insert(entry.Key, commandModelForJava);
+            }
+
+            this.sendHttpService.SendPost("", ref flightplanModelForJava);
             return true;
         }
+    }
+
+    public class FlightplanModelForJava
+    {
+        public string auth_token { get; set; }
+        public int author_id { get; set; }
+        public int created_at { get; set; }
+        public int priority { get; set; }
+        public List<CommandModelForJava> commands { get; set; }
+    }
+
+    public class CommandModelForJava
+    {
+        public int cmd_id { get; set; }
+        public List<int> parameters { get; set; }
     }
 }

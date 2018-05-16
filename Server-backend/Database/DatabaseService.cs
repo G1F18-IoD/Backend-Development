@@ -82,7 +82,7 @@ namespace Server_backend.Database
                     int count = 0;
                     foreach (string Param in Params)
                     {
-                        retObj.Params.Insert(count++, Param);
+                        retObj.Params.Insert(count++, Int32.Parse(Param));
                     }
                 }
             }
@@ -96,7 +96,7 @@ namespace Server_backend.Database
             {
                 cmd.Connection = this.npgSqlCon;
                 //cmd.CommandText = "SELECT id FROM account";
-                cmd.CommandText = "SELECT id, flightplan_id, cmd, message, payload, \"order\" FROM public.flightplan_commands WHERE flightplan_id=(@fpid) ORDER BY \"order\" ASC, id ASC";
+                cmd.CommandText = "SELECT id, flightplan_id, cmd::varchar, message, payload, \"order\" FROM public.flightplan_commands WHERE flightplan_id=(@fpid) ORDER BY \"order\" ASC, id ASC";
                 cmd.Parameters.AddWithValue("@fpid", flightplanId);
                 using (var reader = cmd.ExecuteReader())
                 {
@@ -116,7 +116,11 @@ namespace Server_backend.Database
                         int count = 0;
                         foreach (string Param in Params)
                         {
-                            command.Params.Insert(count++, Param);
+                            int item = 0;
+                            if(!Int32.TryParse(Param, out item)) {
+                                item = 0;
+                            }
+                            command.Params.Insert(count++, item);
                         }
                         cmds.Add(cmds.Count, command);
                     }
@@ -285,7 +289,7 @@ namespace Server_backend.Database
             {
                 cmd.Connection = this.npgSqlCon;
                 //cmd.CommandText = "SELECT id FROM account";
-                cmd.CommandText = "SELECT id, ip, port, status::varchar FROM public.rpi_connection WHERE id=(@rpiconid)";
+                cmd.CommandText = "SELECT id, ip, port, status::varchar, password FROM public.rpi_connection WHERE id=(@rpiconid)";
                 cmd.Parameters.AddWithValue("@rpiconid", rpiConnectionId);
                 using (var reader = cmd.ExecuteReader())
                 {
@@ -295,6 +299,7 @@ namespace Server_backend.Database
                     rpiConnection.ip = reader.GetString(1);
                     rpiConnection.port = reader.GetInt32(2);
                     rpiConnection.status = reader.GetString(3);
+                    rpiConnection.password = reader.GetString(4);
                 }
             }
             rpiConnection.userRights = this.GetRPiConnectionUserRights(rpiConnection.rowId);
@@ -323,15 +328,16 @@ namespace Server_backend.Database
             return this.GetRPiConnection(rpiConnectionId);
         }
 
-        public RPiConnection OfferRPiConnection(string ip, int port)
+        public RPiConnection OfferRPiConnection(string ip, int port, string password)
         {
             int rpiConId = -1;
             using (var cmd = new NpgsqlCommand())
             {
                 cmd.Connection = this.npgSqlCon;
-                cmd.CommandText = "INSERT INTO public.rpi_connection (ip, port) VALUES (@ip, @port) RETURNING id;";
+                cmd.CommandText = "INSERT INTO public.rpi_connection (ip, port, password) VALUES (@ip, @port, @password) RETURNING id;";
                 cmd.Parameters.AddWithValue("@ip", ip);
                 cmd.Parameters.AddWithValue("@port", port);
+                cmd.Parameters.AddWithValue("@password", password);
                 using (var reader = cmd.ExecuteReader())
                 {
                     reader.Read();

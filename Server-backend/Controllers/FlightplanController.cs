@@ -98,7 +98,7 @@ namespace Server_backend.Controllers
     {
         public string cmd { get; set; }
         public string message { get; set; }
-        public List<string> parameters { get; set; }
+        public List<int> parameters { get; set; }
         public int order { get; set; }
     }
 
