@@ -27,7 +27,7 @@ namespace Server_backend.Database
 
     public interface IRPiConnectionDatabaseService : IRPiConnectionCommon
     {
-
+        bool StartFlight(int rpiConnectionId, int flightplanId);
     }
 
 

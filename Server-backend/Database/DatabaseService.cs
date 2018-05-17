@@ -350,5 +350,27 @@ namespace Server_backend.Database
             }
             return this.GetRPiConnection(rpiConId);
         }
+
+        public bool StartFlight(int rpiConnectionId, int flightplanId)
+        {
+            int flightId = -1;
+            using (var cmd = new NpgsqlCommand())
+            {
+                cmd.Connection = this.npgSqlCon;
+                cmd.CommandText = "INSERT INTO public.flight (rpi_connection_id, flightplan_id) VALUES (@rpiconid, @fpid) RETURNING id;";
+                cmd.Parameters.AddWithValue("@rpiconid", rpiConnectionId);
+                cmd.Parameters.AddWithValue("@fpid", flightplanId);
+                using (var reader = cmd.ExecuteReader())
+                {
+                    reader.Read();
+                    flightId = reader.GetInt32(0);
+                }
+            }
+            if (flightId <= 0)
+            {
+                throw new NpgsqlException("Something went wrong with inserting a Flight!");
+            }
+            return true;
+        }
     }
 }

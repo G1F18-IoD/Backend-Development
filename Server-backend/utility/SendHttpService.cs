@@ -13,17 +13,29 @@ namespace Server_backend.utility
     public interface ISendHttpService
     {
         bool SendPost<T>(string url, ref T classToJson);
+        bool SendPost<T>(string url, ref T classToJson, string authToken);
 
     }
 
     public class SendHttpService : ISendHttpService
     {
+
         public bool SendPost<T>(string url, ref T classToJson)
+        {
+            return this.SendPost(url, ref classToJson, "");
+        }
+
+        public bool SendPost<T>(string url, ref T classToJson, string authToken)
         {
             url = "http://skjoldtoft.dk/daniel/g1e17/config_switch.php";
             var httpWebRequest = (HttpWebRequest)WebRequest.Create(url);
             httpWebRequest.ContentType = "application/json";
             httpWebRequest.Method = "POST";
+            if (authToken.Length > 0)
+            {
+                httpWebRequest.Headers.Add("AuthToken", authToken);
+            }
+
 
             using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
             {

@@ -19,6 +19,7 @@ namespace Server_backend.RPiConnectionNS
     public interface IRPiConnectionService : IRPiConnectionCommon
     {
         bool HandFlightplanToRPiConnection(int receiverRPiConnectionId, int flightplanId, int priority);
+        string 
     }
 
     public class RPiConnection
@@ -89,7 +90,9 @@ namespace Server_backend.RPiConnectionNS
                 flightplanModelForJava.commands.Insert(entry.Key, commandModelForJava);
             }
 
-            this.sendHttpService.SendPost("", ref flightplanModelForJava);
+            this.rpiConDbService.StartFlight(receiverRPiConnection.rowId, fpToSend.rowId);
+
+            this.sendHttpService.SendPost("", ref flightplanModelForJava, receiverRPiConnection.password);
             return true;
         }
     }

@@ -55,6 +55,14 @@ namespace Server_backend.Controllers
 
         }
 
+        [HttpGet("status/{id}")]
+        [ServiceFilter(typeof(SaveAuthenticationHeader))]
+        public string GetRPiStatus(int id)
+        {
+            return "Not implemented yet!";
+
+        }
+
         [HttpPost("test/{id}")]
         [ServiceFilter(typeof(SaveAuthenticationHeader))]
         public JsonResult PostTest(int id, [FromBody]StatusRPiConnectionModel sRPiConModel)
