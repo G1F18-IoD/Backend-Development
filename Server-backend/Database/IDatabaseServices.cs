@@ -21,13 +21,17 @@ namespace Server_backend.Database
     public interface IFlightplanDatabaseService
     {
         Flightplan GetFlightplanInfo(int flightplanId);
+        Flightplan GetFlightplanInfo(string flightplanName);
         List<Flightplan> GetFlightplans();
         Flightplan CreateFlightplan(int authorId, string name);
     }
 
     public interface IRPiConnectionDatabaseService : IRPiConnectionCommon
     {
-        bool StartFlight(int rpiConnectionId, int flightplanId);
+        bool StartFlight(int rpiConnectionId, int flightplanId, int userId);
+        RPiConnection SetRPiConnectionStatus(int rpiConnectionId, string status, int userId);
+        void DisconnectOldRPiConnections();
+        void UpdateLastTouch(int userId);
     }
 
 

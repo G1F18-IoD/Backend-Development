@@ -12,14 +12,14 @@ namespace Server_backend.RPiConnectionNS
     {
         List<RPiConnection> GetRPiConnections();
         RPiConnection GetRPiConnection(int rpiConnectionId);
-        RPiConnection SetRPiConnectionStatus(int rpiConnectionId, string status);
         RPiConnection OfferRPiConnection(string ip, int port, string password);
     }
 
     public interface IRPiConnectionService : IRPiConnectionCommon
     {
-        bool HandFlightplanToRPiConnection(int receiverRPiConnectionId, int flightplanId, int priority);
-        string 
+        bool HandFlightplanToRPiConnection(int receiverRPiConnectionId, string flightplanName, int priority);
+        RPiConnection SetRPiConnectionStatus(int rpiConnectionId, string status);
+
     }
 
     public class RPiConnection
@@ -30,6 +30,8 @@ namespace Server_backend.RPiConnectionNS
         public int port { get; set; }
         public string status { get; set; }
         public string password { get; set; }
+        public int userId { get; set; }
+        public int lastTouch { get; set; }
 
         public RPiConnection()
         {
@@ -51,14 +53,52 @@ namespace Server_backend.RPiConnectionNS
             this.fpService = _fpService;
             this.sendHttpService = _sendHttpService;
         }
+
+        private int GetUserId()
+        {
+            string user_id = this.auth.GetTokenClaim("user_id");
+            int uid = 0;
+            if (!Int32.TryParse(user_id, out uid))
+            {
+                throw new FormatException("Could not get user_id from token!");
+            }
+            return uid;
+        }
+
+        /**
+         * Update last touch whenever the user_id is used, so we know the user is still online.
+         */
+        private void UpdateLastTouch()
+        {
+            this.rpiConDbService.UpdateLastTouch(this.GetUserId());
+        }
+
         public RPiConnection GetRPiConnection(int rpiConnectionId)
         {
-            return this.rpiConDbService.GetRPiConnection(rpiConnectionId);
+            this.rpiConDbService.DisconnectOldRPiConnections();
+            this.UpdateLastTouch();
+            this.rpiConDbService.DisconnectOldRPiConnections();
+            RPiConnection rpiConnection = this.rpiConDbService.GetRPiConnection(rpiConnectionId);
+            if(rpiConnection.userId == this.GetUserId())
+            {
+                rpiConnection.status = "connected";
+            }
+            return rpiConnection;
         }
 
         public List<RPiConnection> GetRPiConnections()
         {
-            return this.rpiConDbService.GetRPiConnections();
+            this.rpiConDbService.DisconnectOldRPiConnections();
+            this.UpdateLastTouch();
+            List<RPiConnection> rpiConnections = this.rpiConDbService.GetRPiConnections();
+            rpiConnections.ForEach(rpiCon =>
+            {
+                if(rpiCon.userId == this.GetUserId())
+                {
+                    rpiCon.status = "connected";
+                }
+            });
+            return rpiConnections;
         }
 
         public RPiConnection OfferRPiConnection(string ip, int port, string password)
@@ -68,13 +108,34 @@ namespace Server_backend.RPiConnectionNS
 
         public RPiConnection SetRPiConnectionStatus(int rpiConnectionId, string status)
         {
-            return this.rpiConDbService.SetRPiConnectionStatus(rpiConnectionId, status);
+            this.rpiConDbService.DisconnectOldRPiConnections();
+            this.UpdateLastTouch();
+            RPiConnection rpiConnection = this.rpiConDbService.SetRPiConnectionStatus(rpiConnectionId, status, this.GetUserId());
+            if (rpiConnection.userId == this.GetUserId())
+            {
+                rpiConnection.status = "connected";
+            }
+            return rpiConnection;
         }
 
-        public bool HandFlightplanToRPiConnection(int receiverRPiConnectionId, int flightplanId, int priority)
+        public bool HandFlightplanToRPiConnection(int receiverRPiConnectionId, string flightplanName, int priority)
         {
-            Flightplan fpToSend = this.fpService.GetFlightplan(flightplanId);
+            this.rpiConDbService.DisconnectOldRPiConnections();
+            this.UpdateLastTouch();
+            Flightplan fpToSend = this.fpService.GetFlightplan(flightplanName);
             RPiConnection receiverRPiConnection = this.GetRPiConnection(receiverRPiConnectionId);
+            
+            int uid = this.GetUserId();
+
+            if (receiverRPiConnection.status == "disconnected")
+            {
+                Console.WriteLine("RPi not connected");
+                return false;
+            } else if(receiverRPiConnection.userId != uid)
+            {
+                Console.WriteLine("You have no connections!");
+                return false;
+            }
 
             FlightplanModelForJava flightplanModelForJava = new FlightplanModelForJava();
             flightplanModelForJava.auth_token = receiverRPiConnection.password;
@@ -90,9 +151,20 @@ namespace Server_backend.RPiConnectionNS
                 flightplanModelForJava.commands.Insert(entry.Key, commandModelForJava);
             }
 
-            this.rpiConDbService.StartFlight(receiverRPiConnection.rowId, fpToSend.rowId);
+            string sendFlightplanResult = this.sendHttpService.SendPost("", ref flightplanModelForJava, receiverRPiConnection.password);
+            if(!this.sendHttpService.DeserializeJsonString<bool>(sendFlightplanResult))
+            {
+                throw new TimeoutException("Could not send flightplan to RPi!");
+            }
 
-            this.sendHttpService.SendPost("", ref flightplanModelForJava, receiverRPiConnection.password);
+            string executeFlightplan = this.sendHttpService.SendGet("", receiverRPiConnection.password);
+            if (!this.sendHttpService.DeserializeJsonString<bool>(executeFlightplan))
+            {
+                throw new TimeoutException("Could not execute flightplan at RPi!");
+            }
+
+            this.rpiConDbService.StartFlight(receiverRPiConnection.rowId, fpToSend.rowId, uid);
+            
             return true;
         }
     }

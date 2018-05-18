@@ -117,7 +117,8 @@ namespace Server_backend.Database
                         foreach (string Param in Params)
                         {
                             int item = 0;
-                            if(!Int32.TryParse(Param, out item)) {
+                            if (!Int32.TryParse(Param, out item))
+                            {
                                 item = 0;
                             }
                             command.Params.Insert(count++, item);
@@ -188,6 +189,29 @@ namespace Server_backend.Database
             return flightplan;
         }
 
+        public Flightplan GetFlightplanInfo(string flightplanName)
+        {
+            Flightplan flightplan = new Flightplan();
+            using (var cmd = new NpgsqlCommand())
+            {
+                cmd.Connection = this.npgSqlCon;
+                //cmd.CommandText = "SELECT id FROM account";
+                cmd.CommandText = "SELECT id, \"name\", author, created_at FROM public.flightplan WHERE name=(@fpname)";
+                cmd.Parameters.AddWithValue("@fpname", flightplanName);
+                using (var reader = cmd.ExecuteReader())
+                {
+                    reader.Read();
+
+                    flightplan.rowId = reader.GetInt32(0);
+                    flightplan.name = reader.GetString(1);
+                    flightplan.authorId = reader.GetInt32(2);
+                    flightplan.createdAt = reader.GetInt32(3);
+                }
+                //id = (int)cmd.ExecuteScalar();
+            }
+            return flightplan;
+        }
+
         public List<Flightplan> GetFlightplans()
         {
             List<Flightplan> flightplans = new List<Flightplan>();
@@ -236,13 +260,34 @@ namespace Server_backend.Database
             return this.GetFlightplanInfo(flightplanId);
         }
 
+        public void DisconnectOldRPiConnections()
+        {
+            using (var cmd = new NpgsqlCommand())
+            {
+                cmd.Connection = this.npgSqlCon;
+                cmd.CommandText = "UPDATE public.rpi_connection SET user_id_connected = NULL WHERE last_touch < (select extract(epoch from now()))-600";
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public void UpdateLastTouch(int userid)
+        {
+            using (var cmd = new NpgsqlCommand())
+            {
+                cmd.Connection = this.npgSqlCon;
+                cmd.CommandText = "UPDATE public.rpi_connection SET last_touch = (select extract(epoch from now())) WHERE user_id_connected = (@userid)";
+                cmd.Parameters.AddWithValue("@userid", userid);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
         public List<RPiConnection> GetRPiConnections()
         {
             List<RPiConnection> rpiConnections = new List<RPiConnection>();
             using (var cmd = new NpgsqlCommand())
             {
                 cmd.Connection = this.npgSqlCon;
-                cmd.CommandText = "SELECT id, ip, port, status::varchar FROM public.rpi_connection";
+                cmd.CommandText = "SELECT id, ip, port, password, user_id_connected, last_touch FROM public.rpi_connection";
                 using (var reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
@@ -251,7 +296,10 @@ namespace Server_backend.Database
                         rpiConnection.rowId = reader.GetInt32(0);
                         rpiConnection.ip = reader.GetString(1);
                         rpiConnection.port = reader.GetInt32(2);
-                        rpiConnection.status = reader.GetString(3);
+                        rpiConnection.status = "disconnected";
+                        rpiConnection.password = reader.GetString(3);
+                        rpiConnection.userId = reader.IsDBNull(4) ? -1 : reader.GetInt32(4);
+                        rpiConnection.lastTouch = reader.GetInt32(5);
                         rpiConnections.Add(rpiConnection);
                     }
                 }
@@ -289,7 +337,7 @@ namespace Server_backend.Database
             {
                 cmd.Connection = this.npgSqlCon;
                 //cmd.CommandText = "SELECT id FROM account";
-                cmd.CommandText = "SELECT id, ip, port, status::varchar, password FROM public.rpi_connection WHERE id=(@rpiconid)";
+                cmd.CommandText = "SELECT id, ip, port, password, user_id_connected, last_touch FROM public.rpi_connection WHERE id=(@rpiconid)";
                 cmd.Parameters.AddWithValue("@rpiconid", rpiConnectionId);
                 using (var reader = cmd.ExecuteReader())
                 {
@@ -298,27 +346,43 @@ namespace Server_backend.Database
                     rpiConnection.rowId = reader.GetInt32(0);
                     rpiConnection.ip = reader.GetString(1);
                     rpiConnection.port = reader.GetInt32(2);
-                    rpiConnection.status = reader.GetString(3);
-                    rpiConnection.password = reader.GetString(4);
+                    rpiConnection.status = "disconnected";
+                    rpiConnection.password = reader.GetString(3);
+                    rpiConnection.userId = reader.IsDBNull(4) ? -1 : reader.GetInt32(4);
+                    rpiConnection.lastTouch = reader.GetInt32(5);
                 }
             }
             rpiConnection.userRights = this.GetRPiConnectionUserRights(rpiConnection.rowId);
             return rpiConnection;
         }
 
-        public RPiConnection SetRPiConnectionStatus(int rpiConnectionId, string status)
+        public RPiConnection SetRPiConnectionStatus(int rpiConnectionId, string status, int userId)
         {
+            Console.WriteLine(rpiConnectionId + "." + status + "." + userId);
             int insertedId = -1;
             using (var cmd = new NpgsqlCommand())
             {
                 cmd.Connection = this.npgSqlCon;
-                cmd.CommandText = "UPDATE public.rpi_connection SET status = (@status)::connection_statuses WHERE id = (@rpiconid) RETURNING id;";
+                cmd.CommandText = "WITH selectCount AS(SELECT COUNT(*) FROM public.rpi_connection WHERE user_id_connected = (@userid) AND 'connected' = (@status))" +
+                    "UPDATE public.rpi_connection SET user_id_connected = (@useridconnected), last_touch = (select extract(epoch from now())) WHERE id = (@rpiconid) AND(user_id_connected = (@userid) OR user_id_connected IS NULL) AND 0 = (SELECT \"count\" FROM selectCount) RETURNING id;";
                 cmd.Parameters.AddWithValue("@rpiconid", rpiConnectionId);
                 cmd.Parameters.AddWithValue("@status", status);
+                cmd.Parameters.AddWithValue("@userid", userId);
+                if (status == "connected")
+                {
+                    cmd.Parameters.AddWithValue("@useridconnected", userId);
+                }
+                else
+                {
+                    cmd.Parameters.AddWithValue("@useridconnected", DBNull.Value);
+                }
                 using (var reader = cmd.ExecuteReader())
                 {
-                    reader.Read();
-                    insertedId = reader.GetInt32(0);
+                    if (reader.Read())
+                    {
+                        insertedId = reader.GetInt32(0);
+                    }
+
                 }
             }
             if (insertedId != rpiConnectionId)
@@ -351,15 +415,16 @@ namespace Server_backend.Database
             return this.GetRPiConnection(rpiConId);
         }
 
-        public bool StartFlight(int rpiConnectionId, int flightplanId)
+        public bool StartFlight(int rpiConnectionId, int flightplanId, int userId)
         {
             int flightId = -1;
             using (var cmd = new NpgsqlCommand())
             {
                 cmd.Connection = this.npgSqlCon;
-                cmd.CommandText = "INSERT INTO public.flight (rpi_connection_id, flightplan_id) VALUES (@rpiconid, @fpid) RETURNING id;";
+                cmd.CommandText = "INSERT INTO public.flight (rpi_connection_id, flightplan_id, user_id) VALUES (@rpiconid, @fpid, @userid) RETURNING id;";
                 cmd.Parameters.AddWithValue("@rpiconid", rpiConnectionId);
                 cmd.Parameters.AddWithValue("@fpid", flightplanId);
+                cmd.Parameters.AddWithValue("@userid", userId);
                 using (var reader = cmd.ExecuteReader())
                 {
                     reader.Read();

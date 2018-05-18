@@ -12,20 +12,22 @@ namespace Server_backend.utility
 {
     public interface ISendHttpService
     {
-        bool SendPost<T>(string url, ref T classToJson);
-        bool SendPost<T>(string url, ref T classToJson, string authToken);
-
+        string SendPost<T>(string url, ref T classToJson);
+        string SendPost<T>(string url, ref T classToJson, string authToken);
+        string SendGet(string url);
+        string SendGet(string url, string authToken);
+        T DeserializeJsonString<T>(string json);
     }
 
     public class SendHttpService : ISendHttpService
     {
 
-        public bool SendPost<T>(string url, ref T classToJson)
+        public string SendPost<T>(string url, ref T classToJson)
         {
             return this.SendPost(url, ref classToJson, "");
         }
 
-        public bool SendPost<T>(string url, ref T classToJson, string authToken)
+        public string SendPost<T>(string url, ref T classToJson, string authToken)
         {
             url = "http://skjoldtoft.dk/daniel/g1e17/config_switch.php";
             var httpWebRequest = (HttpWebRequest)WebRequest.Create(url);
@@ -50,9 +52,37 @@ namespace Server_backend.utility
             using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
             {
                 var result = streamReader.ReadToEnd();
-                Console.WriteLine(result);
+                return result;
             }
-            return true;
+        }
+
+        public string SendGet(string url)
+        {
+            return this.SendGet(url, "");
+        }
+
+        public string SendGet(string url, string authToken)
+        {
+            url = "http://skjoldtoft.dk/daniel/g1e17/config_switch.php";
+            var httpWebRequest = (HttpWebRequest)WebRequest.Create(url);
+            httpWebRequest.ContentType = "application/json";
+            httpWebRequest.Method = "GET";
+            if (authToken.Length > 0)
+            {
+                httpWebRequest.Headers.Add("AuthToken", authToken);
+            }
+
+            var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+            using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+            {
+                var result = streamReader.ReadToEnd();
+                return result;
+            }
+        }
+
+        public T DeserializeJsonString<T>(string json)
+        {
+            return JsonConvert.DeserializeObject<T>(json);
         }
 
         /*public void testCurl()

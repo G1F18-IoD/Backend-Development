@@ -27,40 +27,71 @@ namespace Server_backend.Controllers
         [ServiceFilter(typeof(SaveAuthenticationHeader))]
         public List<RPiConnection> Get()
         {
-            return this.rpiConService.GetRPiConnections();
+            List<RPiConnection> rpiConnections = this.rpiConService.GetRPiConnections();
+            rpiConnections.ForEach(rpiCon =>
+            {
+                rpiCon.password = "***";
+            });
+            return rpiConnections;
         }
 
         [HttpGet("{id}")]
         [ServiceFilter(typeof(SaveAuthenticationHeader))]
         public RPiConnection Get(int id)
         {
-            return this.rpiConService.GetRPiConnection(id);
+            RPiConnection rpiCon = this.rpiConService.GetRPiConnection(id);
+            rpiCon.password = "***";
+            return rpiCon;
         }
 
         [HttpPost("offer")]
         [ServiceFilter(typeof(SaveAuthenticationHeader))]
         public RPiConnection PostOffer([FromBody]OfferRPiConnectionModel oRPiConModel)
         {
-
             SendHttpService test = new SendHttpService();
             test.SendPost("", ref oRPiConModel);
             return this.rpiConService.OfferRPiConnection(oRPiConModel.ip, oRPiConModel.port, oRPiConModel.password);
         }
 
-        [HttpPost("status/{id}")]
+        [HttpGet("connect/{id}")]
         [ServiceFilter(typeof(SaveAuthenticationHeader))]
-        public RPiConnection PostStatus(int id, [FromBody]StatusRPiConnectionModel sRPiConModel)
+        public RPiConnection GetConnect(int id)
         {
-            return this.rpiConService.SetRPiConnectionStatus(id, sRPiConModel.status);
+            try
+            {
+                RPiConnection rpiCon = this.rpiConService.SetRPiConnectionStatus(id, "connected");
+                rpiCon.password = "***";
+                return rpiCon;
+            }
+            catch (NpgsqlException e)
+            {
+                this.HttpContext.Response.StatusCode = 403;
+                return null;
+            }
+        }
 
+        [HttpGet("disconnect/{id}")]
+        [ServiceFilter(typeof(SaveAuthenticationHeader))]
+        public RPiConnection GetDisconnect(int id)
+        {
+            try
+            {
+                RPiConnection rpiCon = this.rpiConService.SetRPiConnectionStatus(id, "disconnected");
+                rpiCon.password = "***";
+                return rpiCon;
+            }
+            catch (NpgsqlException e)
+            {
+                this.HttpContext.Response.StatusCode = 403;
+                return null;
+            }
         }
 
         [HttpGet("status/{id}")]
         [ServiceFilter(typeof(SaveAuthenticationHeader))]
-        public string GetRPiStatus(int id)
+        public string[] GetRPiStatus(int id)
         {
-            return "Not implemented yet!";
-
+            return new string[] { this.rpiConService.GetRPiConnection(id).status };
         }
 
         [HttpPost("test/{id}")]
@@ -83,7 +114,7 @@ namespace Server_backend.Controllers
         [ServiceFilter(typeof(SaveAuthenticationHeader))]
         public bool[] PostExecute(int id, [FromBody]ExecuteFlightplanModel eFPModel)
         {
-            return new bool[] { this.rpiConService.HandFlightplanToRPiConnection(id, eFPModel.flightplanId, eFPModel.priority) };
+            return new bool[] { this.rpiConService.HandFlightplanToRPiConnection(id, eFPModel.flightplanName, eFPModel.priority) };
 
         }
     }
@@ -107,7 +138,7 @@ namespace Server_backend.Controllers
 
     public class ExecuteFlightplanModel
     {
-        public int flightplanId { get; set; }
+        public string flightplanName { get; set; }
         public int priority { get; set; }
     }
 }

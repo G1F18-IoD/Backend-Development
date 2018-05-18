@@ -25,6 +25,7 @@ namespace Server_backend.FlightplanNS
     {
         List<Flightplan> GetFlightplans();
         Flightplan GetFlightplan(int flightplanId);
+        Flightplan GetFlightplan(string flightplanName);
         Flightplan CreateFlightplan(string name);
     }
 
@@ -51,12 +52,19 @@ namespace Server_backend.FlightplanNS
             return flightplans;
         }
 
-		public Flightplan GetFlightplan(int flightplanId)
-		{
+        public Flightplan GetFlightplan(int flightplanId)
+        {
             Flightplan flightplan = this.fpDbService.GetFlightplanInfo(flightplanId);
             flightplan.commands = this.cmdService.GetCommands(flightplan.rowId);
             return flightplan;
-		}
+        }
+
+        public Flightplan GetFlightplan(string flightplanName)
+        {
+            Flightplan flightplan = this.fpDbService.GetFlightplanInfo(flightplanName);
+            flightplan.commands = this.cmdService.GetCommands(flightplan.rowId);
+            return flightplan;
+        }
 
         public Flightplan CreateFlightplan(string name)
         {
