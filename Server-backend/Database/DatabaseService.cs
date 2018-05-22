@@ -219,7 +219,7 @@ namespace Server_backend.Database
             {
                 cmd.Connection = this.npgSqlCon;
                 //cmd.CommandText = "SELECT id FROM account";
-                cmd.CommandText = "SELECT id, author, created_at FROM public.flightplan";
+                cmd.CommandText = "SELECT id, author, created_at, \"name\" FROM public.flightplan";
                 using (var reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
@@ -228,6 +228,7 @@ namespace Server_backend.Database
                         flightplan.rowId = reader.GetInt32(0);
                         flightplan.authorId = reader.GetInt32(1);
                         flightplan.createdAt = reader.GetInt32(2);
+                        flightplan.name = reader.GetString(3);
                         flightplans.Add(flightplan);
                     }
                 }

@@ -87,6 +87,12 @@ namespace Server_backend.Controllers
         {
             return this.commandService.GetCommand(id);
         }
+
+        [HttpGet]
+        public string[] GetPossibleCommands()
+        {
+            return this.commandService.GetPossibleCommands();
+        }
     }
 
     public class FlightplanModel
