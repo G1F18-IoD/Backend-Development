@@ -14,6 +14,7 @@ using Server_backend.FlightplanNS;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Cors.Internal;
 using Server_backend.RPiConnectionNS;
+using Microsoft.AspNetCore.Identity;
 
 // p-23&G!bn?-sCK
 
@@ -47,6 +48,8 @@ namespace Server_backend
 
             //Filters
             services.AddScoped<SaveAuthenticationHeader>();
+            services.AddScoped<JwtAuthenticationAttribute>();
+            services.AddScoped<ValidateToken>();
 
 
             services.AddMvc(options =>
@@ -70,7 +73,24 @@ namespace Server_backend
     );
 
             app.UseMvc();
+
+            //this.InitializeRoles(roleManager);
             
+        }
+
+        private string[] roles = new[] { "User", "Manager", "Administrator" };
+        private async Task InitializeRoles(RoleManager<IdentityRole> roleManager)
+        {
+            foreach (var role in roles)
+            {
+                if (!await roleManager.RoleExistsAsync(role))
+                {
+                    var newRole = new IdentityRole(role);
+                    await roleManager.CreateAsync(newRole);
+                    // In the real world, there might be claims associated with roles
+                    // _roleManager.AddClaimAsync(newRole, new )
+                }
+            }
         }
     }
 }
