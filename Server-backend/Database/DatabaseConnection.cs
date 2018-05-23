@@ -17,8 +17,9 @@ namespace Server_backend.Database
 
         private void StartConnection()
         {
-            var connString = "Host=tek-uas-stud0b.stud-srv.sdu.dk;Port=12013;Username=agger;Password=22215145;Database=agger";
-            
+            //var connString = "Host=tek-uas-stud0b.stud-srv.sdu.dk;Port=12013;Username=agger;Password=22215145;Database=agger";
+            var connString = "Host=localhost;Port=5432;Username=postgres;Password=admin;Database=postgres";
+
             DatabaseConnection.npgSqlCon = new NpgsqlConnection(connString);
             DatabaseConnection.npgSqlCon.Open();
 

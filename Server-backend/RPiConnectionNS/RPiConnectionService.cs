@@ -56,6 +56,7 @@ namespace Server_backend.RPiConnectionNS
 
         private int GetUserId()
         {
+            //return 1;
             string user_id = this.auth.GetTokenClaim("user_id");
             int uid = 0;
             if (!Int32.TryParse(user_id, out uid))

@@ -46,7 +46,7 @@ namespace Server_backend.Controllers
         }
 
         [HttpPost("offer")]
-        [ServiceFilter(typeof(SaveAuthenticationHeader))]
+        //[ServiceFilter(typeof(SaveAuthenticationHeader))]
         public RPiConnection PostOffer([FromBody]OfferRPiConnectionModel oRPiConModel)
         {
             SendHttpService test = new SendHttpService();
@@ -120,12 +120,12 @@ namespace Server_backend.Controllers
         //[JwtAuthentication]
         public JsonResult PostAuthTest(int id, [FromBody]StatusRPiConnectionModel sRPiConModel)
         {
-            Console.WriteLine(this.auth.GetToken());
+            /*Console.WriteLine(this.auth.GetToken());
             if(!this.auth.ValidateToken(this.auth.GetToken()))
             {
                 Console.WriteLine("LAWLLL");
-                return Json(new string[] { "FUCKING AUTH NOT WORK" });
-            }
+                return Json(new string[] { "NOT AUTH" });
+            }*/
             return Json(sRPiConModel);
             /*
             try

@@ -132,6 +132,10 @@ namespace Server_backend.utility
             {
                 tokenKeyValues.Add(claim.Type, claim.Value);
             });*/
+            
+            var tokenHandler = new JwtSecurityTokenHandler();
+            AuthenticationService.jwtToken = tokenHandler.ReadToken(AuthenticationService.jwtTokenStr) as JwtSecurityToken;
+
             string retVal;
             switch(attribute.ToLower())
             {

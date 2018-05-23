@@ -21,12 +21,13 @@ namespace Server_backend.Database
 
         public int Login(string username, string password)
         {
+            Console.WriteLine("u:" + username + "p:" + password);
             int id = -1;
             using (var cmd = new NpgsqlCommand())
             {
                 cmd.Connection = this.npgSqlCon;
                 //cmd.CommandText = "SELECT id FROM account";
-                cmd.CommandText = "SELECT id FROM public.account WHERE username=(@u) AND password=(@p)";
+                cmd.CommandText = "SELECT id FROM public.account WHERE lower(username)=lower(@u) AND password=(@p)";
                 cmd.Parameters.AddWithValue("@u", username);
                 cmd.Parameters.AddWithValue("@p", password);
                 using (var reader = cmd.ExecuteReader())
