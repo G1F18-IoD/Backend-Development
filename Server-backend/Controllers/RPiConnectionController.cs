@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Server_backend.RPiConnectionNS;
 using Server_backend.utility;
 using Npgsql;
+//using Microsoft.AspNetCore.Authorization;
 
 namespace Server_backend.Controllers
 {
@@ -96,8 +97,11 @@ namespace Server_backend.Controllers
 
         [HttpPost("test/{id}")]
         [ServiceFilter(typeof(SaveAuthenticationHeader))]
-        public JsonResult PostTest(int id, [FromBody]StatusRPiConnectionModel sRPiConModel)
+        [System.Web.Http.Authorize(Roles = "user")]
+        public string PostTest(int id, [FromBody]StatusRPiConnectionModel sRPiConModel)
         {
+            return sRPiConModel.status;
+            /*
             try
             {
                 return Json(this.rpiConService.SetRPiConnectionStatus(id, sRPiConModel.status));
@@ -107,7 +111,33 @@ namespace Server_backend.Controllers
                 this.HttpContext.Response.StatusCode = 400;
                 return Json(new AllowedStatusRPiConnectionModel());
             }
+            */
+        }
 
+        [HttpPost("testauth/{id}")]
+        [ServiceFilter(typeof(SaveAuthenticationHeader))]
+        //[System.Web.Http.Authorize(Roles = "admin")]
+        //[JwtAuthentication]
+        public JsonResult PostAuthTest(int id, [FromBody]StatusRPiConnectionModel sRPiConModel)
+        {
+            Console.WriteLine(this.auth.GetToken());
+            if(!this.auth.ValidateToken(this.auth.GetToken()))
+            {
+                Console.WriteLine("LAWLLL");
+                return Json(new string[] { "FUCKING AUTH NOT WORK" });
+            }
+            return Json(sRPiConModel);
+            /*
+            try
+            {
+                return Json(this.rpiConService.SetRPiConnectionStatus(id, sRPiConModel.status));
+            }
+            catch (NpgsqlException e)
+            {
+                this.HttpContext.Response.StatusCode = 400;
+                return Json(new AllowedStatusRPiConnectionModel());
+            }
+            */
         }
 
         [HttpPost("execute_flightplan/{id}")]

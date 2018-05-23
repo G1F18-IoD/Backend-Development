@@ -14,6 +14,7 @@ namespace Server_backend.utility
     {
         private readonly IAuthenticationDatabaseService authDBService;
         private static JwtSecurityToken jwtToken;
+        private static string jwtTokenStr;
 
         public AuthenticationService(IAuthenticationDatabaseService _authDBService)
         {
@@ -38,7 +39,10 @@ namespace Server_backend.utility
                 var jwtToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
 
                 if (jwtToken == null)
+                {
+                    Console.WriteLine("NUUUUL");
                     return false;
+                }
 
                 var symmetricKey = Convert.FromBase64String(Secret);
 
@@ -52,19 +56,52 @@ namespace Server_backend.utility
 
                 SecurityToken securityToken;
                 var principal = tokenHandler.ValidateToken(token, validationParameters, out securityToken);
-                string id = jwtToken.Payload.Claims.First(claim => claim.Type == ClaimTypes.PrimarySid).Value;
+                //string id = jwtToken.Payload.Claims.First(claim => claim.Type == ClaimTypes.PrimarySid).Value;
                 //I have no idea what principal is.....
 
                 return true;
             }
 
-            catch (Exception)
+            catch (Exception e)
             {
+                Console.WriteLine("LAWL:" + e.Message);
                 return false;
             }
         }
-		
-		public string Register(string username, string password)
+
+        public static ClaimsPrincipal GetPrincipal(string token)
+        {
+            try
+            {
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var jwtToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
+
+                if (jwtToken == null)
+                    return null;
+
+                var symmetricKey = Convert.FromBase64String(Secret);
+
+                var validationParameters = new TokenValidationParameters()
+                {
+                    RequireExpirationTime = true,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    IssuerSigningKey = new SymmetricSecurityKey(symmetricKey)
+                };
+
+                SecurityToken securityToken;
+                var principal = tokenHandler.ValidateToken(token, validationParameters, out securityToken);
+
+                return principal;
+            }
+
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public string Register(string username, string password)
 		{
             int count = this.authDBService.Register(username, password);
             if (count <= 0)
@@ -77,8 +114,14 @@ namespace Server_backend.utility
         public void SetToken(string token)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            AuthenticationService.jwtToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
+            //AuthenticationService.jwtToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
+            AuthenticationService.jwtTokenStr = token;
             Console.WriteLine(token);
+        }
+
+        public string GetToken()
+        {
+            return AuthenticationService.jwtTokenStr;
         }
 
         public string GetTokenClaim(string attribute)
@@ -119,11 +162,11 @@ namespace Server_backend.utility
                         {
                         new Claim(ClaimTypes.Name, username),
                         new Claim(ClaimTypes.PrimarySid, id.ToString()),
+                        //new Claim(ClaimTypes.Role, "user")
                         //new Claim(ClaimTypes.Actor, )
                     }),
 
                 Expires = now.AddMinutes(Convert.ToInt32(expireMinutes)),
-
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(symmetricKey), SecurityAlgorithms.HmacSha256Signature)
             };
 

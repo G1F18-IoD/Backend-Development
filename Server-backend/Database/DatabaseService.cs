@@ -287,7 +287,7 @@ namespace Server_backend.Database
             using (var cmd = new NpgsqlCommand())
             {
                 cmd.Connection = this.npgSqlCon;
-                cmd.CommandText = "SELECT id, ip, port, password, user_id_connected, last_touch FROM public.rpi_connection";
+                cmd.CommandText = "SELECT id, ip, port, password, user_id_connected, last_touch FROM public.rpi_connection ORDER BY id";
                 using (var reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
