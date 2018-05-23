@@ -36,6 +36,7 @@ namespace Server_backend.FlightplanNS
             throw new NotImplementedException();
         }
 
+
         private int GetCmdIdOfString()
         {
             switch(this.cmdString)
@@ -57,13 +58,15 @@ namespace Server_backend.FlightplanNS
 
     public interface ICommandService : ICommandCommon
     {
-        List<Command> GetPossibleCommands();
+        string[] GetPossibleCommands();
     }
 
     public class CommandService : ICommandService
     {
         private readonly ICommandDatabaseService commandDBService;
-        
+
+        private readonly string[] PossibleCommands = new string[] { "arm", "disarm", "throttle", "land", "turn cw", "turn ccw" };
+
         public CommandService(ICommandDatabaseService _commandDBService)
         {
             this.commandDBService = _commandDBService;
@@ -79,9 +82,9 @@ namespace Server_backend.FlightplanNS
             return this.commandDBService.GetCommands(flightplanId);
         }
 
-        public List<Command> GetPossibleCommands()
+        public string[] GetPossibleCommands()
         {
-            throw new NotImplementedException();
+            return this.PossibleCommands;
         }
 
         public Command SaveCommand(Command command)

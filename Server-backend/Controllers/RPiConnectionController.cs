@@ -54,7 +54,7 @@ namespace Server_backend.Controllers
             return this.rpiConService.OfferRPiConnection(oRPiConModel.ip, oRPiConModel.port, oRPiConModel.password);
         }
 
-        [HttpGet("connect/{id}")]
+        [HttpPost("connect/{id}")]
         [ServiceFilter(typeof(SaveAuthenticationHeader))]
         public RPiConnection GetConnect(int id)
         {
@@ -71,7 +71,7 @@ namespace Server_backend.Controllers
             }
         }
 
-        [HttpGet("disconnect/{id}")]
+        [HttpPost("disconnect/{id}")]
         [ServiceFilter(typeof(SaveAuthenticationHeader))]
         public RPiConnection GetDisconnect(int id)
         {
