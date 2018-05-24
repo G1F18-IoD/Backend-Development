@@ -31,8 +31,9 @@ namespace Server_backend.utility
             return this.GenerateToken(username, id);
         }
 
-        public bool ValidateToken(string token)
+        public bool ValidateToken(string token, out string responseStr)
         {
+            responseStr = "Could not validate token!";
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
@@ -40,7 +41,6 @@ namespace Server_backend.utility
 
                 if (jwtToken == null)
                 {
-                    Console.WriteLine("NUUUUL");
                     return false;
                 }
 
@@ -64,7 +64,6 @@ namespace Server_backend.utility
 
             catch (Exception e)
             {
-                Console.WriteLine("LAWL:" + e.Message);
                 return false;
             }
         }

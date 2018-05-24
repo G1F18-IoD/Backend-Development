@@ -24,50 +24,72 @@ namespace Server_backend.Controllers
 
         // GET api/values
         [HttpGet]
-        public List<Flightplan> Get()
+        [ServiceFilter(typeof(SaveAuthenticationHeader))]
+        public JsonResult Get()
         {
-            return this.flightplanService.GetFlightplans();
+            if (!this.auth.ValidateToken(this.auth.GetToken(), out string authResponse))
+            {
+                this.HttpContext.Response.StatusCode = 401;
+                return Json(new string[] { authResponse });
+            }
+            return Json(this.flightplanService.GetFlightplans());
         }
 
         [HttpGet("settings")]
-        public SettingsModel GetSettings()
+        [ServiceFilter(typeof(SaveAuthenticationHeader))]
+        public JsonResult GetSettings()
         {
-            return new SettingsModel();
+            if (!this.auth.ValidateToken(this.auth.GetToken(), out string authResponse))
+            {
+                this.HttpContext.Response.StatusCode = 401;
+                return Json(new string[] { authResponse });
+            }
+            return Json(new SettingsModel());
         }
 
         // GET api/values/5
         [HttpGet("{id}")]
-        public Flightplan Get(int id)
+        [ServiceFilter(typeof(SaveAuthenticationHeader))]
+        public JsonResult Get(int id)
         {
-            return this.flightplanService.GetFlightplan(id);
+            if (!this.auth.ValidateToken(this.auth.GetToken(), out string authResponse))
+            {
+                this.HttpContext.Response.StatusCode = 401;
+                return Json(new string[] { authResponse });
+            }
+            return Json(this.flightplanService.GetFlightplan(id));
         }
 
         // POST api/values
         [HttpPost]
         [ServiceFilter(typeof(SaveAuthenticationHeader))]
-        public Flightplan Post([FromBody]FlightplanModel fpModel)
+        public JsonResult Post([FromBody]FlightplanModel fpModel)
         {
-            return this.flightplanService.CreateFlightplan(fpModel.name);
+            if (!this.auth.ValidateToken(this.auth.GetToken(), out string authResponse))
+            {
+                this.HttpContext.Response.StatusCode = 401;
+                return Json(new string[] { authResponse });
+            }
+            return Json(this.flightplanService.CreateFlightplan(fpModel.name));
         }
         
         [HttpPost("cmd/{id}")]
-        public Command PostCmd(int id, [FromBody]CommandModel cmd)
+        [ServiceFilter(typeof(SaveAuthenticationHeader))]
+        public JsonResult PostCmd(int id, [FromBody]CommandModel cmd)
         {
+            if (!this.auth.ValidateToken(this.auth.GetToken(), out string authResponse))
+            {
+                this.HttpContext.Response.StatusCode = 401;
+                return Json(new string[] { authResponse });
+            }
             Command command = new Command();
             command.CmdString = cmd.cmd;
             command.Message = cmd.message;
             command.Params.AddRange(cmd.parameters);
             command.Order = cmd.order;
             command.FlightplanId = id;
-            return this.commandService.SaveCommand(command);
+            return Json(this.commandService.SaveCommand(command));
         }
-
-        /*
-        // DELETE api/values/5
-        [HttpPost("delete/{id}")]
-        public void Delete(int id)
-        {
-        }*/
     }
 
     [Route("api/[controller]")]
@@ -83,15 +105,27 @@ namespace Server_backend.Controllers
         }
 
         [HttpGet("{id}")]
-        public Command Get(int id)
+        [ServiceFilter(typeof(SaveAuthenticationHeader))]
+        public JsonResult Get(int id)
         {
-            return this.commandService.GetCommand(id);
+            if (!this.auth.ValidateToken(this.auth.GetToken(), out string authResponse))
+            {
+                this.HttpContext.Response.StatusCode = 401;
+                return Json(new string[] { authResponse });
+            }
+            return Json(this.commandService.GetCommand(id));
         }
 
         [HttpGet]
-        public string[] GetPossibleCommands()
+        [ServiceFilter(typeof(SaveAuthenticationHeader))]
+        public JsonResult GetPossibleCommands()
         {
-            return this.commandService.GetPossibleCommands();
+            if (!this.auth.ValidateToken(this.auth.GetToken(), out string authResponse))
+            {
+                this.HttpContext.Response.StatusCode = 401;
+                return Json(new string[] { authResponse });
+            }
+            return Json(this.commandService.GetPossibleCommands());
         }
     }
 

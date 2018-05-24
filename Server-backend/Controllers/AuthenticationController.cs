@@ -21,33 +21,20 @@ namespace Server_backend.Controllers
 
         // POST api/values
         [HttpPost]
-        public string[] Post([FromBody]LoginModel loginModel)
+        public JsonResult Post([FromBody]LoginModel loginModel)
         {
             //Console.WriteLine(loginModel.Username + "..." + loginModel.Password);
             //this.auth = new AuthenticationService();
             //return this.auth.Login(loginModel.Username, loginModel.Password);
-            return new string[] { this.auth.Login(loginModel.Username, loginModel.Password) };
+            return Json(new string[] { this.auth.Login(loginModel.Username, loginModel.Password) });
         }
 
         // PUT api/values/5
         [HttpPost("register")]
-        public string[] RegisterPost([FromBody]LoginModel loginModel)
+        public JsonResult RegisterPost([FromBody]LoginModel loginModel)
         {
-            return new string[] { this.auth.Register(loginModel.Username, loginModel.Password) };
+            return Json(new string[] { this.auth.Register(loginModel.Username, loginModel.Password) });
         }
-
-        [HttpPost("validate")]
-        public string ValidatePost([FromBody]ValidateTokenModel tokenModel)
-        {
-            return this.auth.ValidateToken(tokenModel.token).ToString();
-        }
-
-        /*[HttpOptions]
-        public bool Options()
-        {
-            Request.HttpContext.Response.Headers.Add("Access-Control-Allow-Origin", "*");
-            return true;
-        }*/
     }
 
     public class LoginModel

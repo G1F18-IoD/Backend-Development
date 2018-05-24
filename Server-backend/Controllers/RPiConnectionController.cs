@@ -26,123 +26,137 @@ namespace Server_backend.Controllers
 
         [HttpGet]
         [ServiceFilter(typeof(SaveAuthenticationHeader))]
-        public List<RPiConnection> Get()
+        public JsonResult Get()
         {
+            if (!this.auth.ValidateToken(this.auth.GetToken(), out string authResponse))
+            {
+                this.HttpContext.Response.StatusCode = 401;
+                return Json(new string[] { authResponse });
+            }
             List<RPiConnection> rpiConnections = this.rpiConService.GetRPiConnections();
             rpiConnections.ForEach(rpiCon =>
             {
                 rpiCon.password = "***";
             });
-            return rpiConnections;
+            return Json(rpiConnections);
         }
 
         [HttpGet("{id}")]
         [ServiceFilter(typeof(SaveAuthenticationHeader))]
-        public RPiConnection Get(int id)
+        public JsonResult Get(int id)
         {
+            if (!this.auth.ValidateToken(this.auth.GetToken(), out string authResponse))
+            {
+                this.HttpContext.Response.StatusCode = 401;
+                return Json(new string[] { authResponse });
+            }
             RPiConnection rpiCon = this.rpiConService.GetRPiConnection(id);
             rpiCon.password = "***";
-            return rpiCon;
+            return Json(rpiCon);
         }
 
+        /**
+         * New connections offered from raspberry pis. These does not have a login, which means they won't have an authentication token, therefore no filter to save the token.
+         */
         [HttpPost("offer")]
-        //[ServiceFilter(typeof(SaveAuthenticationHeader))]
-        public RPiConnection PostOffer([FromBody]OfferRPiConnectionModel oRPiConModel)
+        public JsonResult PostOffer([FromBody]OfferRPiConnectionModel oRPiConModel)
         {
-            return this.rpiConService.OfferRPiConnection(oRPiConModel.ip, oRPiConModel.port, oRPiConModel.password);
+            if (!this.auth.ValidateToken(this.auth.GetToken(), out string authResponse))
+            {
+                this.HttpContext.Response.StatusCode = 401;
+                return Json(new string[] { authResponse });
+            }
+            return Json(this.rpiConService.OfferRPiConnection(oRPiConModel.ip, oRPiConModel.port, oRPiConModel.password));
         }
 
         [HttpPost("connect/{id}")]
         [ServiceFilter(typeof(SaveAuthenticationHeader))]
-        public RPiConnection GetConnect(int id)
+        public JsonResult GetConnect(int id)
         {
+            if (!this.auth.ValidateToken(this.auth.GetToken(), out string authResponse))
+            {
+                this.HttpContext.Response.StatusCode = 401;
+                return Json(new string[] { authResponse });
+            }
             try
             {
                 RPiConnection rpiCon = this.rpiConService.SetRPiConnectionStatus(id, "connected");
                 rpiCon.password = "***";
-                return rpiCon;
+                return Json(rpiCon);
             }
             catch (NpgsqlException e)
             {
                 this.HttpContext.Response.StatusCode = 403;
-                return null;
+                return Json("Database exception!");
             }
         }
 
         [HttpPost("disconnect/{id}")]
         [ServiceFilter(typeof(SaveAuthenticationHeader))]
-        public RPiConnection GetDisconnect(int id)
+        public JsonResult GetDisconnect(int id)
         {
+            if (!this.auth.ValidateToken(this.auth.GetToken(), out string authResponse))
+            {
+                this.HttpContext.Response.StatusCode = 401;
+                return Json(new string[] { authResponse });
+            }
             try
             {
                 RPiConnection rpiCon = this.rpiConService.SetRPiConnectionStatus(id, "disconnected");
                 rpiCon.password = "***";
-                return rpiCon;
+                return Json(rpiCon);
             }
             catch (NpgsqlException e)
             {
                 this.HttpContext.Response.StatusCode = 403;
-                return null;
+                return Json("Database exception!");
             }
         }
 
         [HttpGet("status/{id}")]
         [ServiceFilter(typeof(SaveAuthenticationHeader))]
-        public string[] GetRPiStatus(int id)
+        public JsonResult GetRPiStatus(int id)
         {
-            return new string[] { this.rpiConService.GetRPiConnection(id).status };
+            if (!this.auth.ValidateToken(this.auth.GetToken(), out string authResponse))
+            {
+                this.HttpContext.Response.StatusCode = 401;
+                return Json(new string[] { authResponse });
+            }
+            return Json(new string[] { this.rpiConService.GetRPiConnection(id).status });
         }
 
-        [HttpPost("test/{id}")]
+        // old token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6InRoeWdlIiwicHJpbWFyeXNpZCI6IjIiLCJuYmYiOjE1MjcwNjg1MTksImV4cCI6MTUyNzA2OTcxOSwiaWF0IjoxNTI3MDY4NTE5fQ.UhWA_5JY0i-XBN79kZVUMIEJSpWCzhjtGbIVLTOtags
+        [HttpPost("test")]
         [ServiceFilter(typeof(SaveAuthenticationHeader))]
-        [System.Web.Http.Authorize(Roles = "user")]
-        public string PostTest(int id, [FromBody]StatusRPiConnectionModel sRPiConModel)
+        public JsonResult PostAuthTest([FromBody]StatusRPiConnectionModel sRPiConModel)
         {
-            return sRPiConModel.status;
-            /*
+            if(!this.auth.ValidateToken(this.auth.GetToken(), out string authResponse))
+            {
+                this.HttpContext.Response.StatusCode = 401;
+                return Json(new string[] { authResponse });
+            }
+            //return Json(sRPiConModel);
             try
             {
-                return Json(this.rpiConService.SetRPiConnectionStatus(id, sRPiConModel.status));
+                return Json("success!!");
             }
             catch (NpgsqlException e)
             {
                 this.HttpContext.Response.StatusCode = 400;
-                return Json(new AllowedStatusRPiConnectionModel());
+                return Json("Database failed!");
             }
-            */
-        }
-
-        [HttpPost("testauth/{id}")]
-        [ServiceFilter(typeof(SaveAuthenticationHeader))]
-        //[System.Web.Http.Authorize(Roles = "admin")]
-        //[JwtAuthentication]
-        public JsonResult PostAuthTest(int id, [FromBody]StatusRPiConnectionModel sRPiConModel)
-        {
-            /*Console.WriteLine(this.auth.GetToken());
-            if(!this.auth.ValidateToken(this.auth.GetToken()))
-            {
-                Console.WriteLine("LAWLLL");
-                return Json(new string[] { "NOT AUTH" });
-            }*/
-            return Json(sRPiConModel);
-            /*
-            try
-            {
-                return Json(this.rpiConService.SetRPiConnectionStatus(id, sRPiConModel.status));
-            }
-            catch (NpgsqlException e)
+            catch(Exception e)
             {
                 this.HttpContext.Response.StatusCode = 400;
-                return Json(new AllowedStatusRPiConnectionModel());
+                return Json("General failure by the server!");
             }
-            */
         }
 
         [HttpPost("execute_flightplan/{id}")]
         [ServiceFilter(typeof(SaveAuthenticationHeader))]
-        public bool[] PostExecute(int id, [FromBody]ExecuteFlightplanModel eFPModel)
+        public JsonResult PostExecute(int id, [FromBody]ExecuteFlightplanModel eFPModel)
         {
-            return new bool[] { this.rpiConService.HandFlightplanToRPiConnection(id, eFPModel.flightplanName, eFPModel.priority) };
+            return Json(new bool[] { this.rpiConService.HandFlightplanToRPiConnection(id, eFPModel.flightplanName, eFPModel.priority) });
 
         }
     }
