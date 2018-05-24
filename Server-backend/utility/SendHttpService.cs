@@ -29,7 +29,7 @@ namespace Server_backend.utility
 
         public string SendPost<T>(string url, ref T classToJson, string authToken)
         {
-            url = "http://skjoldtoft.dk/daniel/g1e17/config_switch.php";
+            //url = "http://skjoldtoft.dk/daniel/g1e17/config_switch.php";
             var httpWebRequest = (HttpWebRequest)WebRequest.Create(url);
             httpWebRequest.ContentType = "application/json";
             httpWebRequest.Method = "POST";
@@ -63,7 +63,7 @@ namespace Server_backend.utility
 
         public string SendGet(string url, string authToken)
         {
-            url = "http://skjoldtoft.dk/daniel/g1e17/config_switch.php";
+            //url = "http://skjoldtoft.dk/daniel/g1e17/config_switch.php";
             var httpWebRequest = (HttpWebRequest)WebRequest.Create(url);
             httpWebRequest.ContentType = "application/json";
             httpWebRequest.Method = "GET";

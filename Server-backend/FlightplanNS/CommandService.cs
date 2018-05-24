@@ -42,7 +42,13 @@ namespace Server_backend.FlightplanNS
             switch(this.cmdString)
             {
                 case "arm":
-                    return 400;
+                    return 0;
+                case "disarm":
+                    return 1;
+                case "turn ccw":
+                    return 2;
+                case "turn cw":
+                    return 3;
                 default:
                     return -1;
             }
@@ -65,7 +71,7 @@ namespace Server_backend.FlightplanNS
     {
         private readonly ICommandDatabaseService commandDBService;
 
-        private readonly string[] PossibleCommands = new string[] { "arm", "disarm", "throttle", "land", "turn cw", "turn ccw" };
+        private readonly string[] PossibleCommands = new string[] { "arm", "disarm", "throttle", "yaw_cw", "yaw_ccw" };
 
         public CommandService(ICommandDatabaseService _commandDBService)
         {

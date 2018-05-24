@@ -15,6 +15,11 @@ namespace Server_backend.Database
     {
         private static NpgsqlConnection npgSqlCon;
 
+        public DatabaseConnection()
+        {
+            //this.StartConnection();
+        }
+
         private void StartConnection()
         {
             //var connString = "Host=tek-uas-stud0b.stud-srv.sdu.dk;Port=12013;Username=agger;Password=22215145;Database=agger";
@@ -40,13 +45,21 @@ namespace Server_backend.Database
                     Console.WriteLine(reader.GetString(1));*/
         }
 
+        public static NpgsqlConnection GetStaticCon()
+        {
+            INpgSqlConnection conService = new DatabaseConnection();
+            return conService.GetCon();
+        }
+
         public NpgsqlConnection GetCon()
         {
-            if (DatabaseConnection.npgSqlCon == null)
-            {
-                this.StartConnection();
-            }
-            return DatabaseConnection.npgSqlCon;
+            NpgsqlConnection tempCon;
+            var connString = "Host=localhost;Port=5432;Username=postgres;Password=admin;Database=postgres;Pooling=false;Minimum Pool Size=1;Maximum Pool Size=500;Connection Idle Lifetime=1;Connection Pruning Interval=1";
+
+            tempCon = new NpgsqlConnection(connString);
+            tempCon.Open();
+            //this.StartConnection();
+            return tempCon;
         }
     }
 }

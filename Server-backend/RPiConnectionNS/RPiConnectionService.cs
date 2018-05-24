@@ -139,8 +139,6 @@ namespace Server_backend.RPiConnectionNS
             }
 
             FlightplanModelForJava flightplanModelForJava = new FlightplanModelForJava();
-            flightplanModelForJava.auth_token = receiverRPiConnection.password;
-            flightplanModelForJava.author_id = fpToSend.authorId;
             flightplanModelForJava.created_at = fpToSend.createdAt;
             flightplanModelForJava.priority = priority;
             flightplanModelForJava.commands = new List<CommandModelForJava>();
@@ -152,30 +150,40 @@ namespace Server_backend.RPiConnectionNS
                 flightplanModelForJava.commands.Insert(entry.Key, commandModelForJava);
             }
 
-            string sendFlightplanResult = this.sendHttpService.SendPost("", ref flightplanModelForJava, receiverRPiConnection.password);
+            // Start flight
+            this.rpiConDbService.StartFlight(receiverRPiConnection.rowId, fpToSend.rowId, uid);
+
+            string urlIpPort = "http://" + receiverRPiConnection.ip + ":" + receiverRPiConnection.port;
+
+            string urlStoreFlightplan = urlIpPort + "/api/flightplan/store/";
+            string sendFlightplanResult = this.sendHttpService.SendPost(urlStoreFlightplan, ref flightplanModelForJava, receiverRPiConnection.password);
             if(!this.sendHttpService.DeserializeJsonString<bool>(sendFlightplanResult))
             {
                 throw new TimeoutException("Could not send flightplan to RPi!");
             }
 
-            string executeFlightplan = this.sendHttpService.SendGet("", receiverRPiConnection.password);
+            // TODO: Log to flight that flightplan has been sent
+
+            string urlExecuteFlightplan = urlIpPort + "/api/flightplan/execute/";
+            EmptyModel emptyModel = new EmptyModel();
+            string executeFlightplan = this.sendHttpService.SendPost(urlExecuteFlightplan, ref emptyModel, receiverRPiConnection.password);
             if (!this.sendHttpService.DeserializeJsonString<bool>(executeFlightplan))
             {
                 throw new TimeoutException("Could not execute flightplan at RPi!");
             }
 
-            this.rpiConDbService.StartFlight(receiverRPiConnection.rowId, fpToSend.rowId, uid);
-            
+            // TODO: Log to flight that flightplan has been executed
+
+
             return true;
         }
     }
 
     public class FlightplanModelForJava
     {
-        public string auth_token { get; set; }
-        public int author_id { get; set; }
         public int created_at { get; set; }
         public int priority { get; set; }
+        private int cmd_delay = 60000;
         public List<CommandModelForJava> commands { get; set; }
     }
 
@@ -183,5 +191,10 @@ namespace Server_backend.RPiConnectionNS
     {
         public int cmd_id { get; set; }
         public List<int> parameters { get; set; }
+    }
+
+    public class EmptyModel
+    {
+
     }
 }

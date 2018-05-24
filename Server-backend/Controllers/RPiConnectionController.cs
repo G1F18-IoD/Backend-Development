@@ -49,8 +49,6 @@ namespace Server_backend.Controllers
         //[ServiceFilter(typeof(SaveAuthenticationHeader))]
         public RPiConnection PostOffer([FromBody]OfferRPiConnectionModel oRPiConModel)
         {
-            SendHttpService test = new SendHttpService();
-            test.SendPost("", ref oRPiConModel);
             return this.rpiConService.OfferRPiConnection(oRPiConModel.ip, oRPiConModel.port, oRPiConModel.password);
         }
 
