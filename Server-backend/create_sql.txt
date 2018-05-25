@@ -1,0 +1,71 @@
+CREATE TYPE POSSIBLE_COMMANDS AS ENUM ('arm', 'disarm','throttle','yaw_cw','yaw_counter_cw');
+CREATE TYPE USER_RIGHTS AS ENUM ('read','write','admin');
+CREATE TYPE CONNECTION_STATUSES AS ENUM ('disconnected','connected','armed','flying');
+-- CREATE TYPE COMMAND_STATUSES AS ENUM ('committed','pushed','executed');
+CREATE TYPE FLIGHT_STATUS AS ENUM ('ready','armed','flying','cancelled','ended');
+
+DROP TABLE IF EXISTS flightplan;
+CREATE TABLE flightplan (
+    id       	serial NOT NULL,
+	name		varchar(40) NOT NULL,
+	author		integer NOT NULL,
+	created_at	integer NOT NULL DEFAULT date_part('epoch', now())
+);
+ALTER TABLE public.flightplan ADD CONSTRAINT unique_name UNIQUE ("name");
+
+DROP TABLE IF EXISTS flightplan_commands;
+CREATE TABLE flightplan_commands (
+	id			serial NOT NULL,
+	flightplan_id 	integer NOT NULL,
+	cmd			POSSIBLE_COMMANDS NOT NULL,
+	message		varchar(255) NULL DEFAULT NULL,
+	payload		json NOT NULL,
+	"order"		integer NOT NULL
+);
+
+DROP TABLE IF EXISTS account;
+CREATE TABLE account (
+	id			serial NOT NULL,
+	username	varchar(45) NOT NULL,
+	password	varchar(255) NOT NULL
+);
+ALTER TABLE public.account ADD CONSTRAINT unique_username UNIQUE ("username");
+
+DROP TABLE IF EXISTS rpi_connection;
+CREATE TABLE rpi_connection (
+	id			serial NOT NULL,
+	ip			varchar(15) NOT NULL,
+	port		integer NOT NULL,
+	password	varchar(40) NOT NULL,
+	user_id_connected integer NULL DEFAULT NULL,
+	last_touch	integer NOT NULL DEFAULT 0
+);
+
+DROP TABLE IF EXISTS user_has_rpi_connection;
+CREATE TABLE user_has_rpi_connection (
+	id			serial NOT NULL,
+	user_id		integer NOT NULL,
+	rpi_connection_id	integer NOT NULL,
+	user_right	USER_RIGHTS NOT NULL
+);
+
+DROP TABLE IF EXISTS flight;
+CREATE TABLE flight (
+	id			serial NOT NULL,
+	rpi_connection_id	integer NOT NULL,
+	flightplan_id		integer NOT NULL,
+	user_id		integer NOT NULL,
+	status	FLIGHT_STATUS NOT NULL DEFAULT 'ready',
+	pushed_at	integer DEFAULT date_part('epoch', now()),
+	executed_at	integer NULL
+	
+);
+
+DROP TABLE IF EXISTS flight_logs;
+CREATE TABLE flight_logs (
+	id			serial NOT NULL,
+	flight_id	integer NOT NULL,
+	message		varchar(255) NOT NULL,
+	created_at	integer DEFAULT date_part('epoch', now())
+);
+
