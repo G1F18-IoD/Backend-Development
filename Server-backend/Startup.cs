@@ -1,21 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Server_backend.utility;
 using Server_backend.Database;
 using Server_backend.FlightplanNS;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Cors.Internal;
 using Server_backend.RPiConnectionNS;
-
-// p-23&G!bn?-sCK
 
 namespace Server_backend
 {
@@ -29,8 +19,13 @@ namespace Server_backend
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
+        /**
+         * This method gets called by the runtime container.
+         * Use this method to add services that needs to be able to be dependency injected by the runtime container.
+         */
         public void ConfigureServices(IServiceCollection services)
         {
+            // Allow preflight calls. See app.UserCors under the method Configure.
             services.AddCors();
 
             // DI Services
@@ -51,7 +46,7 @@ namespace Server_backend
 
             services.AddMvc(options =>
             {
-                
+
             });
         }
 
@@ -64,13 +59,13 @@ namespace Server_backend
             }
 
             app.UseCors(builder =>
-    builder.WithOrigins("http://localhost:4200")
-           .AllowAnyHeader()
-           .AllowAnyMethod()
-    );
+                builder.WithOrigins("http://localhost:4200") // Which IP's to allow passing through preflight. This IP is what Angular is usually hosted on.
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+            );
 
             app.UseMvc();
-            
+
         }
     }
 }

@@ -5,8 +5,6 @@ using Server_backend.RPiConnectionNS;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-//using System.Web.Script.Serialization;
 
 namespace Server_backend.Database
 {
@@ -85,10 +83,11 @@ namespace Server_backend.Database
             return retObj;
         }
 
+        // One of the methods to test different NpgSql connection string.
         public Dictionary<int, Command> GetCommands(int flightplanId)
         {
             Dictionary<int, Command> cmds = new Dictionary<int, Command>();
-            using (NpgsqlConnection npgsqlConnection = DatabaseConnection.GetStaticCon())
+            using (NpgsqlConnection npgsqlConnection = DatabaseConnection.GetStaticCon()) // One of the methods to test different NpgSql connection string.
             {
                 using (var cmd = new NpgsqlCommand())
                 {
@@ -127,10 +126,11 @@ namespace Server_backend.Database
             return cmds;
         }
 
+        // One of the methods to test different NpgSql connection string.
         public Command SaveCommand(Command command)
         {
             int cmdId = -1;
-            using (NpgsqlConnection npgsqlConnection = DatabaseConnection.GetStaticCon())
+            using (NpgsqlConnection npgsqlConnection = DatabaseConnection.GetStaticCon()) // One of the methods to test different NpgSql connection string.
             {
                 using (var cmd = new NpgsqlCommand())
                 {
@@ -207,10 +207,11 @@ namespace Server_backend.Database
             return flightplan;
         }
 
+        // One of the methods to test different NpgSql connection string.
         public List<Flightplan> GetFlightplans()
         {
             List<Flightplan> flightplans = new List<Flightplan>();
-            using (NpgsqlConnection npgsqlConnection = DatabaseConnection.GetStaticCon())
+            using (NpgsqlConnection npgsqlConnection = DatabaseConnection.GetStaticCon())  // One of the methods to test different NpgSql connection string.
             {
                 using (var cmd = new NpgsqlCommand())
                 {
