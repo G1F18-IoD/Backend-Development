@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace Server_backend.FlightplanNS
 {
+    /**
+     * Holds the properties of what a Flightplan needs.
+     */
     public class Flightplan
     {
         public Dictionary<int, Command> commands { get; set; }
@@ -35,6 +38,9 @@ namespace Server_backend.FlightplanNS
         private readonly IFlightplanDatabaseService fpDbService;
         private readonly IAuthenticationService auth;
 
+        /**
+         * Constructor for dependency injection.
+         */
         public FlightplanService(ICommandService _cmdService, IFlightplanDatabaseService _fpDbService, IAuthenticationService _auth)
         {
             this.cmdService = _cmdService;
@@ -42,6 +48,9 @@ namespace Server_backend.FlightplanNS
             this.auth = _auth;
         }
 
+        /**
+         * Gets all the flightplans, along with getting the commands for each flightplan.
+         */
         public List<Flightplan> GetFlightplans()
         {
             List<Flightplan> flightplans = this.fpDbService.GetFlightplans();
@@ -52,6 +61,9 @@ namespace Server_backend.FlightplanNS
             return flightplans;
         }
 
+        /**
+         * Gets a specific flightplan by id.
+         */
         public Flightplan GetFlightplan(int flightplanId)
         {
             Flightplan flightplan = this.fpDbService.GetFlightplanInfo(flightplanId);
@@ -59,6 +71,9 @@ namespace Server_backend.FlightplanNS
             return flightplan;
         }
 
+        /**
+         * Gets a specific flightplan by name.
+         */
         public Flightplan GetFlightplan(string flightplanName)
         {
             Flightplan flightplan = this.fpDbService.GetFlightplanInfo(flightplanName);
@@ -66,6 +81,9 @@ namespace Server_backend.FlightplanNS
             return flightplan;
         }
 
+        /**
+         * Finds the user's id and creates a new flightplan using it and a name given.
+         */
         public Flightplan CreateFlightplan(string name)
         {
             string user_id = this.auth.GetTokenClaim("user_id");

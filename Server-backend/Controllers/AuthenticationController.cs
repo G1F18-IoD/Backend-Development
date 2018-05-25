@@ -8,18 +8,28 @@ using Server_backend.utility;
 
 namespace Server_backend.Controllers
 {
+    /**
+     * The API controller to handle authentication like loging in and registering.
+     * URL: api/auth/...
+     * Produces: JSON encoded data.
+     */
     [Produces("application/json")]
     [Route("api/[controller]")]
     public class AuthController : Controller
     {
         private readonly IAuthenticationService auth;
         
+        /**
+         * Constructor for dependency injection.
+         */
         public AuthController(IAuthenticationService _auth)
         {
             this.auth = _auth;
         }
 
-        // POST api/values
+        /**
+         * HTTP POST method for loging in.
+         */
         [HttpPost]
         public JsonResult Post([FromBody]LoginModel loginModel)
         {
@@ -29,7 +39,9 @@ namespace Server_backend.Controllers
             return Json(new string[] { this.auth.Login(loginModel.Username, loginModel.Password) });
         }
 
-        // PUT api/values/5
+        /**
+         * HTTP POST method for registering a user.
+         */
         [HttpPost("register")]
         public JsonResult RegisterPost([FromBody]LoginModel loginModel)
         {
@@ -37,14 +49,12 @@ namespace Server_backend.Controllers
         }
     }
 
+    /**
+     * Class containing the required info for loging in.
+     */
     public class LoginModel
     {
         public string Username { set; get; }
         public string Password { set; get; }
-    }
-
-    public class ValidateTokenModel
-    {
-        public string token { set; get; }
     }
 }

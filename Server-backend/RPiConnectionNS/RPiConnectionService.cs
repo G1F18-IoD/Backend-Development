@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace Server_backend.RPiConnectionNS
 {
+    /**
+     * An interface to contain what both the service and database service should be able to do. This removes duplicates in the interfaces, and actually helps ensure data integrity between the layers.
+     */
     public interface IRPiConnectionCommon
     {
         List<RPiConnection> GetRPiConnections();
@@ -15,6 +18,9 @@ namespace Server_backend.RPiConnectionNS
         RPiConnection OfferRPiConnection(string ip, int port, string password);
     }
 
+    /**
+     * 
+     */
     public interface IRPiConnectionService : IRPiConnectionCommon
     {
         bool HandFlightplanToRPiConnection(int receiverRPiConnectionId, string flightplanName, int priority);
@@ -22,6 +28,9 @@ namespace Server_backend.RPiConnectionNS
 
     }
 
+    /**
+     * Holds the properties of what an RPi connection needs.
+     */
     public class RPiConnection
     {
         public int rowId { get; set; }
@@ -54,9 +63,12 @@ namespace Server_backend.RPiConnectionNS
             this.sendHttpService = _sendHttpService;
         }
 
+        /**
+         * Since this piece of code was used several places in the class, it was decided to put it into its own method.
+         * It basically just asks the authentication service for the user id in the token.
+         */
         private int GetUserId()
         {
-            //return 1;
             string user_id = this.auth.GetTokenClaim("user_id");
             int uid = 0;
             if (!Int32.TryParse(user_id, out uid))
@@ -68,17 +80,21 @@ namespace Server_backend.RPiConnectionNS
 
         /**
          * Update last touch whenever the user_id is used, so we know the user is still online.
+         * Along with first deleting too old RPi connections. This makes sure that the connections expire for whenever a user requests the status of a RPi connection.
+         * This is instead of having some automatic clean up that would run every so often to remove expired connections.
          */
         private void UpdateLastTouch()
         {
+            this.rpiConDbService.DisconnectOldRPiConnections();
             this.rpiConDbService.UpdateLastTouch(this.GetUserId());
         }
 
+        /**
+         * Gets a specific RPi connection, and changes its status to connected if you are connected to it.
+         */
         public RPiConnection GetRPiConnection(int rpiConnectionId)
         {
-            this.rpiConDbService.DisconnectOldRPiConnections();
             this.UpdateLastTouch();
-            this.rpiConDbService.DisconnectOldRPiConnections();
             RPiConnection rpiConnection = this.rpiConDbService.GetRPiConnection(rpiConnectionId);
             if(rpiConnection.userId == this.GetUserId())
             {
@@ -87,9 +103,11 @@ namespace Server_backend.RPiConnectionNS
             return rpiConnection;
         }
 
+        /**
+         * Gets all of the RPi connections and tells you which the user is currently connected to.
+         */
         public List<RPiConnection> GetRPiConnections()
         {
-            this.rpiConDbService.DisconnectOldRPiConnections();
             this.UpdateLastTouch();
             List<RPiConnection> rpiConnections = this.rpiConDbService.GetRPiConnections();
             rpiConnections.ForEach(rpiCon =>
@@ -102,14 +120,19 @@ namespace Server_backend.RPiConnectionNS
             return rpiConnections;
         }
 
+        /**
+         * Basically creating a new RPi connection for people to use.
+         */
         public RPiConnection OfferRPiConnection(string ip, int port, string password)
         {
             return this.rpiConDbService.OfferRPiConnection(ip, port, password);
         }
 
+        /**
+         * Sets the status of a specific RPi, and returns it's information afterwards.
+         */
         public RPiConnection SetRPiConnectionStatus(int rpiConnectionId, string status)
         {
-            this.rpiConDbService.DisconnectOldRPiConnections();
             this.UpdateLastTouch();
             RPiConnection rpiConnection = this.rpiConDbService.SetRPiConnectionStatus(rpiConnectionId, status, this.GetUserId());
             if (rpiConnection.userId == this.GetUserId())
@@ -119,6 +142,15 @@ namespace Server_backend.RPiConnectionNS
             return rpiConnection;
         }
 
+        /**
+         * This method executes a flightplan at a RPi connection. This basically means that the method does:
+         * Get the proper information needed, like the RPi connection object and the Flightplan object.
+         * Then it validates that you are connected to the RPi connection.
+         * Then it formats the classes (found below this class), so that it is readable by the RPi backend.
+         * It then starts a flight in this system.
+         * Then it sends the flightplan to the RPi backend.
+         * It then asks the RPi connection to execute the flightplan.
+         */
         public bool HandFlightplanToRPiConnection(int receiverRPiConnectionId, string flightplanName, int priority)
         {
             this.rpiConDbService.DisconnectOldRPiConnections();
@@ -179,6 +211,9 @@ namespace Server_backend.RPiConnectionNS
         }
     }
 
+    /**
+     * A class that holds the correct formatting of what the RPi backend requires in its POST requests.
+     */
     public class FlightplanModelForJava
     {
         public int created_at { get; set; }
@@ -187,12 +222,18 @@ namespace Server_backend.RPiConnectionNS
         public List<CommandModelForJava> commands { get; set; }
     }
 
+    /**
+     * A class that holds the correct formatting of what the RPi backend requires in its POST requests.
+     */
     public class CommandModelForJava
     {
         public int cmd_id { get; set; }
         public List<int> parameters { get; set; }
     }
 
+    /**
+     * Since our SendPost method requires a class to put in the body, this class lets us send no data at all, but still send a class to put in the body.
+     */
     public class EmptyModel
     {
 

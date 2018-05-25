@@ -10,17 +10,27 @@ using Server_backend.Database;
 
 namespace Server_backend.utility
 {
+    /**
+     * Class for handling everything related to authentication.
+     * For authentication, a JWT token is used.
+     */
     public class AuthenticationService : IAuthenticationService
     {
         private readonly IAuthenticationDatabaseService authDBService;
         private static JwtSecurityToken jwtToken;
         private static string jwtTokenStr;
 
+        /**
+         * Constructor for dependency injection.
+         */
         public AuthenticationService(IAuthenticationDatabaseService _authDBService)
         {
             this.authDBService = _authDBService;
         }
 
+        /**
+         * Will return a authentication token if successfully logged in. It will return a label if not.
+         */
         public string Login(string username, string password)
         {
             int id = this.authDBService.Login(username, password);
@@ -31,6 +41,10 @@ namespace Server_backend.utility
             return this.GenerateToken(username, id);
         }
 
+        /**
+         * Will return true if succesfully validated the token. This validation uses the JWT token concept that is implemented by the .Net Core.
+         * It was planned to return a string, through an out parameter, that contained the error message, although, not enough work was put into this yet.
+         */
         public bool ValidateToken(string token, out string responseStr)
         {
             responseStr = "Could not validate token!";
@@ -56,8 +70,6 @@ namespace Server_backend.utility
 
                 SecurityToken securityToken;
                 var principal = tokenHandler.ValidateToken(token, validationParameters, out securityToken);
-                //string id = jwtToken.Payload.Claims.First(claim => claim.Type == ClaimTypes.PrimarySid).Value;
-                //I have no idea what principal is.....
 
                 return true;
             }
@@ -68,38 +80,9 @@ namespace Server_backend.utility
             }
         }
 
-        public static ClaimsPrincipal GetPrincipal(string token)
-        {
-            try
-            {
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var jwtToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
-
-                if (jwtToken == null)
-                    return null;
-
-                var symmetricKey = Convert.FromBase64String(Secret);
-
-                var validationParameters = new TokenValidationParameters()
-                {
-                    RequireExpirationTime = true,
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    IssuerSigningKey = new SymmetricSecurityKey(symmetricKey)
-                };
-
-                SecurityToken securityToken;
-                var principal = tokenHandler.ValidateToken(token, validationParameters, out securityToken);
-
-                return principal;
-            }
-
-            catch (Exception)
-            {
-                return null;
-            }
-        }
-
+        /**
+         * Will return a authentication token if successfully registering a new user. It will return a label if not.
+         */
         public string Register(string username, string password)
 		{
             int count = this.authDBService.Register(username, password);
@@ -112,26 +95,19 @@ namespace Server_backend.utility
 
         public void SetToken(string token)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            //AuthenticationService.jwtToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
             AuthenticationService.jwtTokenStr = token;
-            Console.WriteLine(token);
         }
-
+        
         public string GetToken()
         {
             return AuthenticationService.jwtTokenStr;
         }
 
+        /**
+         * This gets a value from the token, like the user id.
+         */
         public string GetTokenClaim(string attribute)
         {
-            /*Dictionary<string, string> tokenKeyValues = new Dictionary<string, string>();
-            List<Claim> claims = AuthenticationService.jwtToken.Payload.Claims.ToList();
-            claims.ForEach(claim =>
-            {
-                tokenKeyValues.Add(claim.Type, claim.Value);
-            });*/
-            
             var tokenHandler = new JwtSecurityTokenHandler();
             AuthenticationService.jwtToken = tokenHandler.ReadToken(AuthenticationService.jwtTokenStr) as JwtSecurityToken;
 
@@ -141,7 +117,6 @@ namespace Server_backend.utility
                 case "user_id":
                 case "userid":
                     retVal = AuthenticationService.jwtToken.Payload.Claims.First(claim => claim.Type == "primarysid").Value;
-                    //retVal = tokenKeyValues.GetValueOrDefault("primarysid");
                     break;
                 default:
                     retVal = "";
@@ -151,8 +126,11 @@ namespace Server_backend.utility
         }
 
         private const string Secret = "db3OIsj+BXE9NZDy0t8W3TcNekrF+2d/1sFnWG4HnV8TZY30iTOdtVWJG8abWvB1GlOgJuQZdcF2Luqm/hccMw==";
-        //private const string Secret = "fiskenfiskerfisk";
 
+        /**
+         * This will use the JWT token implementation by the .Net to created a token with a name and a primary sid, which is the user id.
+         * The Secret will be used to hash the signature, so we can compare that signature in the future to confirm the validity of the token.
+         */
         private string GenerateToken(string username, int id, int expireMinutes = 20)
         {
             var symmetricKey = Convert.FromBase64String(Secret);
@@ -164,9 +142,7 @@ namespace Server_backend.utility
                 Subject = new ClaimsIdentity(new[]
                         {
                         new Claim(ClaimTypes.Name, username),
-                        new Claim(ClaimTypes.PrimarySid, id.ToString()),
-                        //new Claim(ClaimTypes.Role, "user")
-                        //new Claim(ClaimTypes.Actor, )
+                        new Claim(ClaimTypes.PrimarySid, id.ToString())
                     }),
 
                 Expires = now.AddMinutes(Convert.ToInt32(expireMinutes)),

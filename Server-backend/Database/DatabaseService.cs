@@ -27,7 +27,6 @@ namespace Server_backend.Database
             using (var cmd = new NpgsqlCommand())
             {
                 cmd.Connection = this.npgSqlCon;
-                //cmd.CommandText = "SELECT id FROM account";
                 cmd.CommandText = "SELECT id FROM public.account WHERE lower(username)=lower(@u) AND password=(@p)";
                 cmd.Parameters.AddWithValue("@u", username);
                 cmd.Parameters.AddWithValue("@p", password);
@@ -36,7 +35,6 @@ namespace Server_backend.Database
                     reader.Read();
                     id = reader.GetInt32(0);
                 }
-                //id = (int)cmd.ExecuteScalar();
             }
             return id;
         }
@@ -49,12 +47,10 @@ namespace Server_backend.Database
                 cmd.Connection = this.npgSqlCon;
                 Console.WriteLine("Con:" + this.npgSqlCon == null);
                 Console.WriteLine("CMD:" + cmd == null);
-                //cmd.CommandText = "SELECT id FROM account";
                 cmd.CommandText = "INSERT INTO public.account (username, password) VALUES ((@u), (@p))";
                 cmd.Parameters.AddWithValue("@u", username);
                 cmd.Parameters.AddWithValue("@p", password);
                 count = cmd.ExecuteNonQuery();
-                //id = (int)cmd.ExecuteScalar();
             }
             return count;
         }
@@ -65,7 +61,6 @@ namespace Server_backend.Database
             using (var cmd = new NpgsqlCommand())
             {
                 cmd.Connection = this.npgSqlCon;
-                //cmd.CommandText = "SELECT id FROM account";
                 cmd.CommandText = "SELECT id, flightplan_id, cmd, message, payload, \"order\" FROM public.flightplan_commands WHERE id=(@cmdId)";
                 cmd.Parameters.AddWithValue("@cmdId", CommandId);
                 using (var reader = cmd.ExecuteReader())
@@ -76,9 +71,8 @@ namespace Server_backend.Database
                     retObj.CmdString = reader.GetString(2);
                     retObj.Message = reader.IsDBNull(3) ? "" : reader.GetString(3);
                     retObj.Order = reader.GetInt32(5);
-
-                    //JavaScriptSerializer js = new JavaScriptSerializer();
-                    //string[] Params = js.Deserialize<string[]>(reader.GetString(4));
+                    
+                    // Turns the JSON encoded array from the DB into an array readable by C#
                     JArray ja = JArray.Parse(reader.GetString(4));
                     string[] Params = ja.Select(jv => (string)jv).ToArray();
                     int count = 0;
@@ -99,7 +93,6 @@ namespace Server_backend.Database
                 using (var cmd = new NpgsqlCommand())
                 {
                     cmd.Connection = npgsqlConnection;
-                    //cmd.CommandText = "SELECT id FROM account";
                     cmd.CommandText = "SELECT id, flightplan_id, cmd::varchar, message, payload, \"order\" FROM public.flightplan_commands WHERE flightplan_id=(@fpid) ORDER BY \"order\" ASC, id ASC";
                     cmd.Parameters.AddWithValue("@fpid", flightplanId);
                     using (var reader = cmd.ExecuteReader())
@@ -113,8 +106,7 @@ namespace Server_backend.Database
                             command.Message = reader.IsDBNull(3) ? "" : reader.GetString(3);
                             command.Order = reader.GetInt32(5);
 
-                            //JavaScriptSerializer js = new JavaScriptSerializer();
-                            //string[] Params = js.Deserialize<string[]>(reader.GetString(4));
+                            // Turns the JSON encoded array from the DB into an array readable by C#
                             JArray ja = JArray.Parse(reader.GetString(4));
                             string[] Params = ja.Select(jv => (string)jv).ToArray();
                             int count = 0;
@@ -130,7 +122,6 @@ namespace Server_backend.Database
                             cmds.Add(cmds.Count, command);
                         }
                     }
-                    //id = (int)cmd.ExecuteScalar();
                 }
             }
             return cmds;
@@ -144,10 +135,10 @@ namespace Server_backend.Database
                 using (var cmd = new NpgsqlCommand())
                 {
                     cmd.Connection = npgsqlConnection;
-                    //cmd.CommandText = "SELECT id FROM account";
                     cmd.CommandText = "INSERT INTO public.flightplan_commands (flightplan_id, cmd, message, payload, \"order\") VALUES (@fpid, @cmd::possible_commands, @message, array_to_json(@params), @order) RETURNING id;";
                     cmd.Parameters.AddWithValue("@fpid", command.FlightplanId);
                     cmd.Parameters.AddWithValue("@cmd", command.CmdString);
+                    // Inserts NULL into the message if the command's message is empty.
                     if (command.Message.Length <= 0)
                     {
                         cmd.Parameters.AddWithValue("@message", DBNull.Value);
@@ -164,7 +155,6 @@ namespace Server_backend.Database
                         reader.Read();
                         cmdId = reader.GetInt32(0);
                     }
-                    //id = (int)cmd.ExecuteScalar();
                 }
 
             }
@@ -181,7 +171,6 @@ namespace Server_backend.Database
             using (var cmd = new NpgsqlCommand())
             {
                 cmd.Connection = this.npgSqlCon;
-                //cmd.CommandText = "SELECT id FROM account";
                 cmd.CommandText = "SELECT id, \"name\", author, created_at FROM public.flightplan WHERE id=(@fpid)";
                 cmd.Parameters.AddWithValue("@fpid", flightplanId);
                 using (var reader = cmd.ExecuteReader())
@@ -193,7 +182,6 @@ namespace Server_backend.Database
                     flightplan.authorId = reader.GetInt32(2);
                     flightplan.createdAt = reader.GetInt32(3);
                 }
-                //id = (int)cmd.ExecuteScalar();
             }
             return flightplan;
         }
@@ -204,7 +192,6 @@ namespace Server_backend.Database
             using (var cmd = new NpgsqlCommand())
             {
                 cmd.Connection = this.npgSqlCon;
-                //cmd.CommandText = "SELECT id FROM account";
                 cmd.CommandText = "SELECT id, \"name\", author, created_at FROM public.flightplan WHERE name=(@fpname)";
                 cmd.Parameters.AddWithValue("@fpname", flightplanName);
                 using (var reader = cmd.ExecuteReader())
@@ -216,7 +203,6 @@ namespace Server_backend.Database
                     flightplan.authorId = reader.GetInt32(2);
                     flightplan.createdAt = reader.GetInt32(3);
                 }
-                //id = (int)cmd.ExecuteScalar();
             }
             return flightplan;
         }
@@ -229,7 +215,6 @@ namespace Server_backend.Database
                 using (var cmd = new NpgsqlCommand())
                 {
                     cmd.Connection = npgsqlConnection;
-                    //cmd.CommandText = "SELECT id FROM account";
                     cmd.CommandText = "SELECT id, author, created_at, \"name\" FROM public.flightplan";
                     using (var reader = cmd.ExecuteReader())
                     {
@@ -243,7 +228,6 @@ namespace Server_backend.Database
                             flightplans.Add(flightplan);
                         }
                     }
-                    //id = (int)cmd.ExecuteScalar();
                 }
                 npgsqlConnection.Close();
             }
@@ -259,7 +243,6 @@ namespace Server_backend.Database
                 using (var cmd = new NpgsqlCommand())
                 {
                     cmd.Connection = npgsqlConnection;
-                    //cmd.CommandText = "SELECT id FROM account";
                     cmd.CommandText = "INSERT INTO public.flightplan (\"name\",author) VALUES (@name, @authorId) RETURNING id;";
                     cmd.Parameters.AddWithValue("@name", name);
                     cmd.Parameters.AddWithValue("@authorId", authorId);
@@ -268,7 +251,6 @@ namespace Server_backend.Database
                         reader.Read();
                         flightplanId = reader.GetInt32(0);
                     }
-                    //id = (int)cmd.ExecuteScalar();
                 }
                 if (flightplanId <= 0)
                 {
@@ -354,7 +336,6 @@ namespace Server_backend.Database
             using (var cmd = new NpgsqlCommand())
             {
                 cmd.Connection = this.npgSqlCon;
-                //cmd.CommandText = "SELECT id FROM account";
                 cmd.CommandText = "SELECT id, ip, port, password, user_id_connected, last_touch FROM public.rpi_connection WHERE id=(@rpiconid)";
                 cmd.Parameters.AddWithValue("@rpiconid", rpiConnectionId);
                 using (var reader = cmd.ExecuteReader())

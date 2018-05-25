@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Server_backend.RPiConnectionNS;
 using Server_backend.utility;
 using Npgsql;
-//using Microsoft.AspNetCore.Authorization;
 
 namespace Server_backend.Controllers
 {
+    /**
+     * The API controller to handle the RPi connections, along with executing a flightplan in the RPi connection.
+     * URL: api/rpiconnection/...
+     * Produces: JSON encoded data.
+     */
     [Produces("application/json")]
     [Route("api/[controller]")]
     public class RPiConnectionController : Controller
@@ -18,12 +19,19 @@ namespace Server_backend.Controllers
         private readonly IAuthenticationService auth;
         private readonly IRPiConnectionService rpiConService;
 
+        /**
+         * Constructor for Dependency Injection.
+         */
         public RPiConnectionController(IAuthenticationService _auth, IRPiConnectionService _rpiConService)
         {
             this.auth = _auth;
             this.rpiConService = _rpiConService;
         }
 
+        /**
+         * HTTP GET method for fetching all the possible RPi connections.
+         * Filter: Saving the authentication token.
+         */
         [HttpGet]
         [ServiceFilter(typeof(SaveAuthenticationHeader))]
         public JsonResult Get()
@@ -41,6 +49,11 @@ namespace Server_backend.Controllers
             return Json(rpiConnections);
         }
 
+
+        /**
+         * HTTP GET method for fetching a specific RPi connection based on the row id of it.
+         * Filter: Saving the authentication token.
+         */
         [HttpGet("{id}")]
         [ServiceFilter(typeof(SaveAuthenticationHeader))]
         public JsonResult Get(int id)
@@ -68,7 +81,11 @@ namespace Server_backend.Controllers
             }
             return Json(this.rpiConService.OfferRPiConnection(oRPiConModel.ip, oRPiConModel.port, oRPiConModel.password));
         }
-
+        
+        /**
+         * HTTP POST method for connecting to a RPi.
+         * Filter: Saving the authentication token.
+         */
         [HttpPost("connect/{id}")]
         [ServiceFilter(typeof(SaveAuthenticationHeader))]
         public JsonResult GetConnect(int id)
@@ -91,6 +108,10 @@ namespace Server_backend.Controllers
             }
         }
 
+        /**
+         * HTTP POST method for disconnecting from a RPi.
+         * Filter: Saving the authentication token.
+         */
         [HttpPost("disconnect/{id}")]
         [ServiceFilter(typeof(SaveAuthenticationHeader))]
         public JsonResult GetDisconnect(int id)
@@ -113,6 +134,10 @@ namespace Server_backend.Controllers
             }
         }
 
+        /**
+         * HTTP get method for getting the status of a RPi.
+         * Filter: Saving the authentication token.
+         */
         [HttpGet("status/{id}")]
         [ServiceFilter(typeof(SaveAuthenticationHeader))]
         public JsonResult GetRPiStatus(int id)
@@ -125,10 +150,15 @@ namespace Server_backend.Controllers
             return Json(new string[] { this.rpiConService.GetRPiConnection(id).status });
         }
 
-        // old token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6InRoeWdlIiwicHJpbWFyeXNpZCI6IjIiLCJuYmYiOjE1MjcwNjg1MTksImV4cCI6MTUyNzA2OTcxOSwiaWF0IjoxNTI3MDY4NTE5fQ.UhWA_5JY0i-XBN79kZVUMIEJSpWCzhjtGbIVLTOtags
+
+        /**
+         * HTTP POST method for testing various concepts.
+         * Filter: Saving the authentication token.
+         * Expired token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6InRoeWdlIiwicHJpbWFyeXNpZCI6IjIiLCJuYmYiOjE1MjcwNjg1MTksImV4cCI6MTUyNzA2OTcxOSwiaWF0IjoxNTI3MDY4NTE5fQ.UhWA_5JY0i-XBN79kZVUMIEJSpWCzhjtGbIVLTOtags
+         */
         [HttpPost("test")]
         [ServiceFilter(typeof(SaveAuthenticationHeader))]
-        public JsonResult PostAuthTest([FromBody]StatusRPiConnectionModel sRPiConModel)
+        public JsonResult PostAuthTest()
         {
             if(!this.auth.ValidateToken(this.auth.GetToken(), out string authResponse))
             {
@@ -151,7 +181,10 @@ namespace Server_backend.Controllers
                 return Json("General failure by the server!");
             }
         }
-
+        /**
+         * HTTP POST method for executing a flightplan.
+         * Filter: Saving the authentication token.
+         */
         [HttpPost("execute_flightplan/{id}")]
         [ServiceFilter(typeof(SaveAuthenticationHeader))]
         public JsonResult PostExecute(int id, [FromBody]ExecuteFlightplanModel eFPModel)
@@ -161,6 +194,9 @@ namespace Server_backend.Controllers
         }
     }
 
+    /**
+     * Class that contains the information required in the POST body when offering a RPi connection to the system.
+     */
     public class OfferRPiConnectionModel
     {
         public string ip { get; set; }
@@ -168,16 +204,9 @@ namespace Server_backend.Controllers
         public string password { get; set; }
     }
 
-    public class StatusRPiConnectionModel
-    {
-        public string status { get; set; }
-    }
-
-    public class AllowedStatusRPiConnectionModel
-    {
-        public string[] allowedStatuses = new string[] { "disconnected", "connected" };
-    }
-
+    /**
+     * Class that contains the information required in the POST body when executing a flightplan by the name of the flightplan.
+     */
     public class ExecuteFlightplanModel
     {
         public string flightplanName { get; set; }

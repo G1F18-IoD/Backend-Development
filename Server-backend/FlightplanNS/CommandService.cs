@@ -6,12 +6,18 @@ using Server_backend.Database;
 
 namespace Server_backend.FlightplanNS
 {
+    /**
+     * Holds the properties of what an RPi connection needs.
+     */
     public class Command
     {
         public int RowId { get; set; }
         public int FlightplanId { get; set; }
         public int CmdId { get; set; }
         private string cmdString;
+        /**
+         * Custom "set" of CmdString, because it sets the id of the command as well.
+         */
         public string CmdString
         {
             get { return this.cmdString; }
@@ -31,12 +37,9 @@ namespace Server_backend.FlightplanNS
             this.Params = new List<int>(this.ParamsLength);
         }
 
-        public string GetJson()
-        {
-            throw new NotImplementedException();
-        }
-
-
+        /**
+         * Gets the command string's id, that can be read by the RPi backend.
+         */
         private int GetCmdIdOfString()
         {
             switch(this.cmdString)
@@ -55,6 +58,9 @@ namespace Server_backend.FlightplanNS
         }
     }
 
+    /**
+     * An interface to contain what both the service and database service should be able to do. This removes duplicates in the interfaces, and actually helps ensure data integrity between the layers.
+     */
     public interface ICommandCommon
     {
         Dictionary<int, Command> GetCommands(int flightplanId);
@@ -66,13 +72,16 @@ namespace Server_backend.FlightplanNS
     {
         string[] GetPossibleCommands();
     }
-
+    
     public class CommandService : ICommandService
     {
         private readonly ICommandDatabaseService commandDBService;
 
         private readonly string[] PossibleCommands = new string[] { "arm", "disarm", "throttle", "yaw_cw", "yaw_ccw" };
 
+        /**
+         * Constructor for dependency injection.
+         */
         public CommandService(ICommandDatabaseService _commandDBService)
         {
             this.commandDBService = _commandDBService;

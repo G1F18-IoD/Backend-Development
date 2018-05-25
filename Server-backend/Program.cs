@@ -15,23 +15,13 @@ namespace Server_backend
     {
         public static void Main(string[] args)
         {
-            //dbCon.startConnection();
-            //CURL cURL = new CURL();
-            //cURL.testCurl();
-            SendHttpService test = new SendHttpService();
-            
-            //test.PostResult();
-            //test.testCurl();
-            //IAuthenticationService auth = new AuthenticationService();
-            //auth.Login("cunt", "cunt");
             BuildWebHost(args).Run();
-            // RPi static ip: 192.168.1.155
         }
 
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
-            //.UseUrls("http://192.168.0.19:5021")
+            //.UseUrls("http://192.168.0.19:5021") // This line should be used when getting connections from other computers. This has to be your own local IPv4
                 .Build();
     }
 }
